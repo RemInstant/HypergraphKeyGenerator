@@ -1,9 +1,10 @@
 plugins {
     id 'java'
+    id 'maven-publish'
 }
 
-group = 'org.reminstant'
-version = '1.0-SNAPSHOT'
+group = 'org.reminstant.crypto'
+version = '0.1'
 
 repositories {
     mavenLocal()
@@ -11,8 +12,8 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.reminstant:cryptography:0.2'
-    testImplementation 'org.reminstant:cryptography:0.2:tests'
+    implementation 'org.reminstant.crypto:crypto-core:0.2'
+    testImplementation 'org.reminstant.crypto:crypto-core:0.2:tests'
 
     implementation 'ch.qos.logback:logback-classic:1.5.18'
 
