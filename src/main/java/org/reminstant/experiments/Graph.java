@@ -1,25 +1,31 @@
 package org.reminstant.experiments;
 
+import org.reminstant.Validator;
 import org.reminstant.math.Combinatorics;
 
 import java.util.*;
 
 public class Graph implements IsomorphicallyComparable<Graph> {
 
-  private final int size;
+  private final int verticesCount;
   List<SortedSet<Integer>> adjacencyList;
 
-  public Graph(int size) {
-    this.size = size;
+  public Graph(int verticesCount) {
+    Validator.requireNonLess(verticesCount, 0, "verticesCount");
+
+    this.verticesCount = verticesCount;
     adjacencyList = new ArrayList<>();
-    for (int i = 0; i < size; ++i) {
+    for (int i = 0; i < verticesCount; ++i) {
       adjacencyList.add(new TreeSet<>());
     }
   }
 
   public static Graph ofEdges(List<Edge> edges) {
-    int size = 1 + edges.stream().map(e -> Math.max(e.u(), e.v())).max(Integer::compareTo).orElse(0);
-    Graph graph = new Graph(size);
+    int verticesCount = 1 + edges.stream()
+        .map(e -> Math.max(e.u(), e.v()))
+        .max(Integer::compareTo)
+        .orElse(0);
+    Graph graph = new Graph(verticesCount);
     for (Edge e : edges) {
       graph.addEdge(e.u(), e.v());
     }
@@ -34,7 +40,7 @@ public class Graph implements IsomorphicallyComparable<Graph> {
 
   public List<Edge> getEdges() {
     List<Edge> edges = new ArrayList<>();
-    for (int u = 0; u < size; ++u) {
+    for (int u = 0; u < verticesCount; ++u) {
       for (int v : adjacencyList.get(u)) {
         if (v > u) {
           edges.add(new Edge(u, v));
@@ -47,7 +53,7 @@ public class Graph implements IsomorphicallyComparable<Graph> {
 
 
   public boolean addEdge(int u, int v) {
-    if (u >= size || v >= size) {
+    if (u >= verticesCount || v >= verticesCount) {
       throw new IllegalArgumentException("One of vertices is not included in graph");
     }
     adjacencyList.get(u).add(v);
@@ -57,9 +63,9 @@ public class Graph implements IsomorphicallyComparable<Graph> {
 
 
   public Graph complement() {
-    Graph graph = new Graph(size);
-    for (int i = 0; i < size; ++i) {
-      for (int j = i + 1; j < size; ++j) {
+    Graph graph = new Graph(verticesCount);
+    for (int i = 0; i < verticesCount; ++i) {
+      for (int j = i + 1; j < verticesCount; ++j) {
         if (!adjacencyList.get(i).contains(j)) {
           graph.addEdge(i, j);
         }
@@ -84,7 +90,7 @@ public class Graph implements IsomorphicallyComparable<Graph> {
 
     Set<Edge> edges = new HashSet<>(getEdges());
     Set<Edge> otherEdges = new HashSet<>(otherGraph.getEdges());
-    Iterator<int[]> permutationGenerator = Combinatorics.permutationGenerator(size);
+    Iterator<int[]> permutationGenerator = Combinatorics.permutationGenerator(verticesCount);
 
     while (permutationGenerator.hasNext()) {
       int[] mapping = permutationGenerator.next();
@@ -104,12 +110,12 @@ public class Graph implements IsomorphicallyComparable<Graph> {
   public final boolean equals(Object o) {
     if (!(o instanceof Graph graph)) return false;
 
-    return size == graph.size && Objects.equals(adjacencyList, graph.adjacencyList);
+    return verticesCount == graph.verticesCount && Objects.equals(adjacencyList, graph.adjacencyList);
   }
 
   @Override
   public int hashCode() {
-    int result = size;
+    int result = verticesCount;
     result = 31 * result + Objects.hashCode(adjacencyList);
     return result;
   }

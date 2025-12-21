@@ -1,9 +1,9 @@
 package org.reminstant.experiments;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
 import org.reminstant.Utils;
 import org.reminstant.math.Combinatorics;
+import org.testng.Assert;
+import org.testng.annotations.Test;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -12,10 +12,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.IntUnaryOperator;
-import java.util.function.UnaryOperator;
 import java.util.stream.IntStream;
 
-class GraphTest {
+public class GraphTest {
 
   @Test
   void graphEqualsTest1() {
@@ -32,7 +31,7 @@ class GraphTest {
     graph2.addEdge(2, 3);
     graph2.addEdge(3, 0);
 
-    Assertions.assertEquals(graph1, graph2);
+    Assert.assertEquals(graph1, graph2);
   }
 
   @Test
@@ -50,7 +49,7 @@ class GraphTest {
     graph2.addEdge(2, 3);
     graph2.addEdge(0, 3);
 
-    Assertions.assertEquals(graph1, graph2);
+    Assert.assertEquals(graph1, graph2);
   }
 
   @Test
@@ -70,7 +69,7 @@ class GraphTest {
     graph2.addEdge(0, 3);
     graph2.addEdge(3, 4);
 
-    Assertions.assertNotEquals(graph1, graph2);
+    Assert.assertNotEquals(graph1, graph2);
   }
 
   @Test
@@ -88,7 +87,7 @@ class GraphTest {
     graph2.addEdge(2, 3);
     graph2.addEdge(3, 0);
 
-    Assertions.assertTrue(graph1.isomorphicTo(graph2));
+    Assert.assertTrue(graph1.isomorphicTo(graph2));
   }
 
   @Test
@@ -106,7 +105,7 @@ class GraphTest {
     graph2.addEdge(2, 3);
     graph2.addEdge(0, 3);
 
-    Assertions.assertTrue(graph1.isomorphicTo(graph2));
+    Assert.assertTrue(graph1.isomorphicTo(graph2));
   }
 
   @Test
@@ -126,7 +125,7 @@ class GraphTest {
     graph2.addEdge(0, 3);
     graph2.addEdge(3, 4);
 
-    Assertions.assertTrue(graph1.isomorphicTo(graph2));
+    Assert.assertTrue(graph1.isomorphicTo(graph2));
   }
 
   @Test
@@ -160,7 +159,7 @@ class GraphTest {
     graph2.addEdge(5, 6);
     graph2.addEdge(6, 7);
 
-    Assertions.assertTrue(graph1.isomorphicTo(graph2));
+    Assert.assertTrue(graph1.isomorphicTo(graph2));
   }
 
   @Test
@@ -193,14 +192,14 @@ class GraphTest {
     graph3.addEdge(5, 0);
     graph3.addEdge(0, 4);
 
-    Assertions.assertFalse(graph1.isomorphicTo(graph2));
-    Assertions.assertTrue(graph1.isomorphicTo(graph3));
+    Assert.assertFalse(graph1.isomorphicTo(graph2));
+    Assert.assertTrue(graph1.isomorphicTo(graph3));
   }
 
   @Test
   void testDistribution() {
     int n = 5;
-//    IsomorphicClassifier<Graph> isoClassifier = new IsomorphicClassifier<>();
+    IsomorphicClassifier<Graph> isoClassifier = new IsomorphicClassifier<>();
     EqualityClassifier<Graph> eqClassifier = new EqualityClassifier<>();
 
     Iterator<int[]> pruferGenerator = Combinatorics.arrangementsWithRepetitionGenerator(n, n - 2);
@@ -224,14 +223,14 @@ class GraphTest {
           }
         }
 
-//        isoClassifier.add(g);
+        isoClassifier.add(g);
         eqClassifier.add(g);
       }
     }
 
     System.out.println("isomorphism");
-//    System.out.println(isoClassifier.getClassCount());
-//    System.out.println(isoClassifier.getClassSizes());
+    System.out.println(isoClassifier.getClassCount());
+    System.out.println(isoClassifier.getClassSizes());
 //    System.out.println(isoClassifier.getClassification().get(0).getFirst().getEdges());
 
     System.out.println("equality");
@@ -250,7 +249,7 @@ class GraphTest {
     Iterator<int[]> pruferGenerator = Combinatorics.arrangementsWithRepetitionGenerator(n, n - 2);
     Instant st = Instant.now();
     int i = 0;
-    long cnt = Combinatorics.arrangementWithRepetition(n, n - 2);
+    long cnt = Combinatorics.Fast.arrangementWithRepetitionCount(n, n - 2);
     while (pruferGenerator.hasNext()) {
       if (i % 50 == 0) {
         System.out.printf("%d/%d (%ss) - ", i, cnt, Duration.between(st, Instant.now()).toSeconds());
@@ -266,8 +265,8 @@ class GraphTest {
 
       IntUnaryOperator getCnt = x -> {
         double c = (Math.pow(cnt, 1 - 2. * x / (n - 1) / (n - 2)));
-        c *= Combinatorics.combination(n - 1, x);
-        c /= Combinatorics.combination(n, (int) Math.round(1. * x * n / (n - 1)));
+        c *= Combinatorics.Fast.combinationCount(n - 1, x);
+        c /= Combinatorics.Fast.combinationCount(n, (int) Math.round(1. * x * n / (n - 1)));
 //        c = 1;
         return (int) Math.round(c);
       };

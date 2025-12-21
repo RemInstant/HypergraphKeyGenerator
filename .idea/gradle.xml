@@ -4,11 +4,27 @@
   <component name="GradleSettings">
     <option name="linkedExternalProjectsSettings">
       <GradleProjectSettings>
+        <option name="externalProjectPath" value="$PROJECT_DIR$/../CommonUtils" />
+        <option name="modules">
+          <set>
+            <option value="$PROJECT_DIR$/../CommonUtils" />
+          </set>
+        </option>
+      </GradleProjectSettings>
+      <GradleProjectSettings>
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
         <option name="gradleHome" value="" />
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
+          </set>
+        </option>
+      </GradleProjectSettings>
+      <GradleProjectSettings>
+        <option name="externalProjectPath" value="$PROJECT_DIR$/../MAI/Cryptography" />
+        <option name="modules">
+          <set>
+            <option value="$PROJECT_DIR$/../MAI/Cryptography" />
           </set>
         </option>
       </GradleProjectSettings>

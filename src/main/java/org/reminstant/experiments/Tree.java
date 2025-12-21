@@ -1,41 +1,93 @@
 package org.reminstant.experiments;
 
 import org.reminstant.Utils;
+import org.reminstant.math.DisjointSetUnion;
 
 import java.util.*;
 
 public class Tree implements IsomorphicallyComparable<Tree> {
 
+  private final int verticesCount;
   private final Set<Edge> edges;
-  private final NavigableSet<Integer> vertices;
-  private final DisjointSetUnion dsu;
-  private int ephemeralRoot;
+  private String serializedStructure;
 
-  private String cachedSerializedStructure;
+
+  private Tree(int verticesCount, Set<Edge> edges) {
+    this.verticesCount = verticesCount;
+    this.edges = edges;
+  }
+
+  public static Tree.Builder builder() {
+    return new Builder();
+  }
+
+
+  public static class Builder {
+
+    private final Set<Edge> edges;
+    private final NavigableSet<Integer> vertices;
+    private final DisjointSetUnion dsu;
+
+    Builder() {
+      edges = new HashSet<>();
+      vertices = new TreeSet<>();
+      dsu = new DisjointSetUnion(0);
+    }
+
+    Builder addEdge(int u, int v) {
+      Edge e = new Edge(u, v);
+      if (edges.contains(e)) {
+        return this;
+      }
+
+      dsu.assureSize(1 + Math.max(u, v));
+
+      if (dsu.isUnited(u, v)) {
+        throw new IllegalArgumentException("This edge produces a cycle");
+      }
+
+      edges.add(e);
+      vertices.add(u);
+      vertices.add(v);
+      dsu.unite(u, v);
+
+      return this;
+    }
+
+    Tree build() {
+      if (dsu.getComponentsCount() > 1) {
+        throw new IllegalStateException("Vertices are not connected");
+      }
+      return new Tree(vertices.size(), new HashSet<>(edges));
+    }
+
+    boolean canBuild() {
+      return dsu.getComponentsCount() == 1;
+    }
+  }
 
 
   public static Tree ofPruferCode(int[] pruferCode) {
     if (pruferCode.length == 0) {
-      Tree result = new Tree();
-      result.addEdge(0, 1);
-      return result;
+      return new Tree(2, Set.of(new Edge(0, 1)));
     }
 
-    int size = pruferCode.length + 2;
-    if (Arrays.stream(pruferCode).max().orElseThrow() >= size) {
+    int verticesCnt = pruferCode.length + 2;
+    if (Arrays.stream(pruferCode).max().orElseThrow() >= verticesCnt) {
       throw new IllegalArgumentException("Invalid prufer code " + Arrays.toString(pruferCode));
     }
 
-    Tree result = new Tree();
-    boolean[] used = new boolean[size];
-    int[] pruferCnts = new int[size];
+    Builder b = builder();
+
+    boolean[] used = new boolean[verticesCnt];
+    int[] pruferCnts = new int[verticesCnt];
     for (int k : pruferCode) {
       pruferCnts[k]++;
     }
 
     for (int u : pruferCode) {
       int v = -1;
-      for (int j = 0; j < size && v == -1; ++j) {
+      for (int j = 0; j < verticesCnt && v == -1; ++j) {
         if (!used[j] && pruferCnts[j] == 0) {
           v = j;
         }
@@ -43,42 +95,30 @@ public class Tree implements IsomorphicallyComparable<Tree> {
 
       used[v] = true;
       pruferCnts[u] -= 1;
-      result.addEdgeInternal(u, v);
+      b.addEdge(u, v);
     }
 
     int lastU = -1;
     int lastV = -1;
-    for (int i = 0; i < size; ++i) {
+    for (int i = 0; i < verticesCnt; ++i) {
       if (!used[i]) {
         lastV = lastU;
         lastU = i;
       }
     }
 
-    result.addEdgeInternal(lastU, lastV);
-    return result;
+    b.addEdge(lastU, lastV);
+    return b.build();
   }
 
 
-  public Tree() {
-    edges = new HashSet<>();
-    vertices = new TreeSet<>();
-    dsu = new DisjointSetUnion(8);
-    ephemeralRoot = -1;
-    cachedSerializedStructure = "[]";
+
+  public int getVerticesCount() {
+    return verticesCount;
   }
 
-
-  public int getSize() {
-    return vertices.size();
-  }
-
-  public int getEdgesCnt() {
+  public int getEdgesCount() {
     return edges.size();
-  }
-
-  public List<Integer> getVertices() {
-    return List.copyOf(vertices);
   }
 
   public List<Edge> getEdges() {
@@ -86,44 +126,14 @@ public class Tree implements IsomorphicallyComparable<Tree> {
   }
 
 
-  public boolean addEdge(int u, int v) {
-    if (edges.contains(new Edge(u, v))) {
-      return false;
-    }
-    if (dsu.isUnited(u, v)) {
-      throw new IllegalArgumentException("This edge produces a cycle");
-    }
-    if (!edges.isEmpty() && !dsu.isUnited(u, ephemeralRoot) && !dsu.isUnited(v, ephemeralRoot)) {
-      throw new IllegalArgumentException("This edge produces a new component");
-    }
-
-    return addEdgeInternal(u, v);
-  }
-
-  private boolean addEdgeInternal(int u, int v) {
-    boolean res = edges.add(new Edge(u, v));
-    vertices.add(u);
-    vertices.add(v);
-    dsu.unite(u, v);
-
-    if (ephemeralRoot == -1) {
-      ephemeralRoot = u;
-    }
-
-    return res;
-  }
-
 
   public int[] toPruferCode() {
     if (edges.isEmpty()) {
       throw new IllegalStateException("Tree has no edges");
     }
-    if (vertices.getLast() + 1 != vertices.size()) {
-      throw new IllegalStateException("Tree vertices is not normalized");
-    }
 
-    int[] degrees = new int[vertices.size()];
-    Set<Edge> edgesCopy = HashSet.newHashSet(getEdgesCnt());
+    int[] degrees = new int[verticesCount];
+    Set<Edge> edgesCopy = HashSet.newHashSet(getEdgesCount());
     edgesCopy.addAll(edges);
 
     for (Edge e : edgesCopy) {
@@ -149,15 +159,12 @@ public class Tree implements IsomorphicallyComparable<Tree> {
 
   @Override
   public boolean isomorphicTo(Tree otherTree) {
-    int[] centers = getCenters();
-    int[] otherCenters = otherTree.getCenters();
-
-    if (centers.length != otherCenters.length) {
+    if (verticesCount != otherTree.verticesCount) {
       return false;
     }
 
-    String structure = serializeStructure(centers);
-    String otherStructure = otherTree.serializeStructure(otherCenters);
+    String structure = serializeStructure();
+    String otherStructure = otherTree.serializeStructure();
 
     return structure.equals(otherStructure);
   }
@@ -178,9 +185,48 @@ public class Tree implements IsomorphicallyComparable<Tree> {
 
 
 
+  private String serializeStructure() {
+    if (serializedStructure != null) {
+      return serializedStructure;
+    }
+
+    int[] centers = getCenters();
+    List<String> components = new ArrayList<>();
+    if (centers.length == 2) {
+      components.add(serializeStructure(centers[0], centers[1]));
+      components.add(serializeStructure(centers[1], centers[0]));
+    } else {
+      components.add(serializeStructure(centers[0], -1));
+    }
+
+    Collections.sort(components);
+    StringBuilder b = new StringBuilder("[");
+    components.forEach(b::append);
+
+    serializedStructure = b.append("]").toString();
+    return serializedStructure;
+  }
+
+  private String serializeStructure(int center, int skipVertex) {
+    List<String> components = new ArrayList<>();
+    for (Edge e : edges) {
+      if (e.contains(center) && !e.contains(skipVertex)) {
+        int vertex = e.getAdjacent(center);
+        components.add(serializeStructure(vertex, center));
+      }
+    }
+
+    Collections.sort(components);
+    StringBuilder b = new StringBuilder("(");
+    components.forEach(b::append);
+    b.append(")");
+
+    return b.toString();
+  }
+
   private int[] getCenters() {
-    Map<Integer, Integer> degrees = HashMap.newHashMap(vertices.size());
-    Set<Edge> edgesCopy = HashSet.newHashSet(getEdgesCnt());
+    Map<Integer, Integer> degrees = HashMap.newHashMap(verticesCount);
+    Set<Edge> edgesCopy = HashSet.newHashSet(getEdgesCount());
     edgesCopy.addAll(edges);
 
     for (Edge e : edgesCopy) {
@@ -224,44 +270,5 @@ public class Tree implements IsomorphicallyComparable<Tree> {
 
     Edge lastEdge = edgesCopy.iterator().next();
     return new int[]{ lastEdge.u(), lastEdge.v() };
-  }
-
-  private String serializeStructure(int[] centers) {
-    if (cachedSerializedStructure.length() == 2 * vertices.size() + 2) {
-      return cachedSerializedStructure;
-    }
-
-    List<String> components = new ArrayList<>();
-    if (centers.length == 2) {
-      components.add(serializeStructure(centers[0], centers[1]));
-      components.add(serializeStructure(centers[1], centers[0]));
-    } else {
-      components.add(serializeStructure(centers[0], -1));
-    }
-
-    Collections.sort(components);
-    StringBuilder b = new StringBuilder("[");
-    components.forEach(b::append);
-    b.append("]");
-
-    cachedSerializedStructure = b.toString();
-    return cachedSerializedStructure;
-  }
-
-  private String serializeStructure(int center, int skipVertex) {
-    List<String> components = new ArrayList<>();
-    for (Edge e : edges) {
-      if (e.contains(center) && !e.contains(skipVertex)) {
-        int vertex = e.getAdjacent(center);
-        components.add(serializeStructure(vertex, center));
-      }
-    }
-
-    Collections.sort(components);
-    StringBuilder b = new StringBuilder("(");
-    components.forEach(b::append);
-    b.append(")");
-
-    return b.toString();
   }
 }

@@ -2,6 +2,7 @@ package org.reminstant.math;
 
 import org.reminstant.Utils;
 
+import java.math.BigInteger;
 import java.util.*;
 import java.util.function.UnaryOperator;
 import java.util.stream.IntStream;
@@ -11,33 +12,123 @@ public class Combinatorics {
 
   private static final int[] EMPTY_INT_ARRAY = new int[0];
 
-
-
-  public static long factorial(int x) {
-    long res = 1;
+  public static BigInteger factorial(int x) {
+    BigInteger res = BigInteger.ONE;
     for (int i = 2; i <= x; ++i) {
-      res = Math.multiplyExact(res, i);
+      res = res.multiply(BigInteger.valueOf(i));
     }
     return res;
   }
 
-  public static long arrangementWithRepetition(int n, int k) {
-    long res = 1;
+  public static BigInteger arrangementWithRepetitionCount(int n, int k) {
+    BigInteger res = BigInteger.ONE;
     for (int i = 0; i < k; ++i) {
-      res = Math.multiplyExact(res, n);
+      res = res.multiply(BigInteger.valueOf(n));
     }
     return res;
   }
 
-  public static long combination(int n, int k) {
-    long res = 1;
+  public static BigInteger combinationCount(int n, int k) {
+    throwIfNegative(Math.min(n, k), "Parameters");
+
+    if (k == 1) {
+      return BigInteger.valueOf(n);
+    }
+    if (k == n) {
+      return BigInteger.ONE;
+    }
+    if (k > n) {
+      return BigInteger.ZERO;
+    }
+
+    BigInteger res = BigInteger.ONE;
     for (int i = Math.max(k, n - k) + 1; i <= n; ++i) {
-      res = Math.multiplyExact(res, i);
+      res = res.multiply(BigInteger.valueOf(i));
     }
-    for (int i = 2; i <= Math.min(k, n - k); ++i) {
-      res = Math.divideExact(res, i);
+    return res.divide(factorial(Math.min(k, n - k)));
+  }
+
+  public static int[] getCombinationByOrdinal(int n, int k, long ordinal) {
+    return getCombinationByOrdinal(n, k, BigInteger.valueOf(ordinal));
+  }
+
+  public static int[] getCombinationByOrdinal(int n, int k, BigInteger ordinal) {
+    if (ordinal.compareTo(BigInteger.ZERO) < 0 || ordinal.compareTo(combinationCount(n, k)) >= 0) {
+      return EMPTY_INT_ARRAY;
     }
-    return res;
+
+    int[] combination = new int[k];
+    int idx = 0;
+    int next = 0;
+    while (k > 0) {
+      BigInteger cc = combinationCount(n - 1, k - 1);
+      if (ordinal.compareTo(cc) < 0) {
+        combination[idx++] = next;
+        k -= 1;
+      } else {
+        ordinal = ordinal.subtract(cc);
+      }
+      n -= 1;
+      next += 1;
+    }
+    return combination;
+  }
+
+  public static BigInteger getCombinationOrdinal(int n, int[] combination) {
+    int k = combination.length;
+    int[] originCombination = combination;
+    combination = Arrays.copyOf(combination, k);
+    Arrays.sort(combination);
+
+    boolean isValid = combination[k - 1] < n;
+    for (int i = 1; i < k && isValid; ++i) {
+      isValid = combination[i - 1] != combination[i];
+    }
+    if (!isValid) {
+      throw new IllegalArgumentException("%s is not a combination of set of %d elements"
+          .formatted(Arrays.toString(originCombination), n));
+    }
+
+    BigInteger reverseOrdinal = BigInteger.ZERO;
+    for (int i = 0; i < k; ++i) {
+      int v = combination[i];
+      reverseOrdinal = reverseOrdinal.add(combinationCount(n - v - 1, k - i));
+    }
+
+    return combinationCount(n, k).subtract(BigInteger.ONE).subtract(reverseOrdinal);
+  }
+
+
+
+  public static class Fast {
+    private Fast() { }
+
+    public static long factorial(int x) {
+      long res = 1;
+      for (int i = 2; i <= x; ++i) {
+        res = Math.multiplyExact(res, i);
+      }
+      return res;
+    }
+
+    public static long arrangementWithRepetitionCount(int n, int k) {
+      long res = 1;
+      for (int i = 0; i < k; ++i) {
+        res = Math.multiplyExact(res, n);
+      }
+      return res;
+    }
+
+    public static long combinationCount(int n, int k) {
+      long res = 1;
+      for (int i = Math.max(k, n - k) + 1; i <= n; ++i) {
+        res = Math.multiplyExact(res, i);
+      }
+      for (int i = 2; i <= Math.min(k, n - k); ++i) {
+        res = Math.divideExact(res, i);
+      }
+      return res;
+    }
   }
 
 
@@ -87,7 +178,7 @@ public class Combinatorics {
 
   public static List<int[]> getPermutations(int n) {
     validateCombinatoricsParam(n);
-    long cnt = factorial(n);
+    long cnt = Fast.factorial(n);
 
     List<int[]> permutations = new ArrayList<>();
     int[] permutation = IntStream.range(0, n).toArray();
@@ -103,7 +194,7 @@ public class Combinatorics {
 
   public static List<int[]> getArrangementsWithRepetition(int n, int k) {
     validateCombinatoricsWithRepetitionsParams(n, k);
-    long cnt = arrangementWithRepetition(n, k);
+    long cnt = Fast.arrangementWithRepetitionCount(n, k);
 
     List<int[]> arrangements = new ArrayList<>();
     int[] arrangement = new int[k];
@@ -119,7 +210,7 @@ public class Combinatorics {
 
   public static List<int[]> getCombinations(int n, int k) {
     validateCombinatoricsParams(n, k);
-    long cnt = combination(n, k);
+    long cnt = Fast.combinationCount(n, k);
 
     List<int[]> combinations = new ArrayList<>();
     int[] combination = IntStream.range(0, k).toArray();
@@ -200,6 +291,12 @@ public class Combinatorics {
   }
 
 
+
+  private static void throwIfNegative(long param, String paramName) {
+    if (param < 0) {
+      throw new IllegalArgumentException(paramName + " must be non-negative");
+    }
+  }
 
   private static void validateCombinatoricsParam(int n) {
     if (n < 0) {
