@@ -30,3 +30,40 @@ dependencies {
 test {
     useJUnitPlatform()
 }
+
+tasks.register('sourcesJar', Jar) {
+    archiveClassifier = 'sources'
+    from sourceSets.main.allJava
+}
+
+tasks.register('testClassesJar', Jar) {
+    archiveBaseName = "${project.name}-tests"
+    from sourceSets.test.output
+}
+
+tasks.register('testSourcesJar', Jar) {
+    archiveBaseName = "${project.name}-tests"
+    archiveClassifier = 'sources'
+    from sourceSets.test.allJava
+}
+
+publishing {
+    publications {
+        main(MavenPublication) {
+            artifactId = project.name
+            from components.java
+
+            artifact sourcesJar {
+                archiveClassifier = 'sources'
+            }
+
+            artifact testClassesJar {
+                archiveClassifier = 'tests'
+            }
+
+            artifact testSourcesJar {
+                archiveClassifier = 'test-sources'
+            }
+        }
+    }
+}
