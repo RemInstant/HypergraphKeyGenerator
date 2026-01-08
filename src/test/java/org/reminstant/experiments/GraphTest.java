@@ -1,6 +1,11 @@
 package org.reminstant.experiments;
 
-import org.reminstant.Utils;
+import org.reminstant.math.graphtheory.ordinary.Edge;
+import org.reminstant.math.graphtheory.ordinary.Graph;
+import org.reminstant.math.graphtheory.ordinary.Tree;
+import org.reminstant.math.EqualityClassifier;
+import org.reminstant.math.IsomorphicClassifier;
+import org.reminstant.structure.Pair;
 import org.reminstant.math.Combinatorics;
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -14,6 +19,7 @@ import java.util.Map;
 import java.util.function.IntUnaryOperator;
 import java.util.stream.IntStream;
 
+// TODO: separate tests and experiments
 public class GraphTest {
 
   @Test
@@ -202,7 +208,7 @@ public class GraphTest {
     IsomorphicClassifier<Graph> isoClassifier = new IsomorphicClassifier<>();
     EqualityClassifier<Graph> eqClassifier = new EqualityClassifier<>();
 
-    Iterator<int[]> pruferGenerator = Combinatorics.arrangementsWithRepetitionGenerator(n, n - 2);
+    Iterator<int[]> pruferGenerator = Combinatorics.arrangementWithRepetitionGenerator(n, n - 2);
     while (pruferGenerator.hasNext()) {
       int[] pruferCode = pruferGenerator.next();
       Graph graph = Graph.ofTree(Tree.ofPruferCode(pruferCode));
@@ -210,7 +216,7 @@ public class GraphTest {
       List<Edge> additionalEdges = graph.complement().getEdges();
       int addEdgesCnt = additionalEdges.size();
 
-      Iterator<int[]> filterGenerator = Combinatorics.arrangementsWithRepetitionGenerator(2, addEdgesCnt);
+      Iterator<int[]> filterGenerator = Combinatorics.arrangementWithRepetitionGenerator(2, addEdgesCnt);
 
       while (filterGenerator.hasNext()) {
         int[] filter = filterGenerator.next();
@@ -246,7 +252,7 @@ public class GraphTest {
     EqualityClassifier<Graph> eqClassifier = new EqualityClassifier<>();
     Map<Integer, Integer> graphCntGroupByAddEdgeCnt = new HashMap<>();
 
-    Iterator<int[]> pruferGenerator = Combinatorics.arrangementsWithRepetitionGenerator(n, n - 2);
+    Iterator<int[]> pruferGenerator = Combinatorics.arrangementWithRepetitionGenerator(n, n - 2);
     Instant st = Instant.now();
     int i = 0;
     long cnt = Combinatorics.Fast.arrangementWithRepetitionCount(n, n - 2);
@@ -273,7 +279,7 @@ public class GraphTest {
 
       int[] addEdgesCntArr = IntStream
           .rangeClosed(0, maxAddEdgesCnt)
-          .mapToObj(x -> new Utils.Pair<>(x, getCnt.applyAsInt(x)))
+          .mapToObj(x -> new Pair<>(x, getCnt.applyAsInt(x)))
           .flatMapToInt(p -> IntStream
               .range(0, p.second())
               .map(x -> p.first())
@@ -294,7 +300,7 @@ public class GraphTest {
           continue;
         }
 
-        Iterator<int[]> edgesCombinationGenerator = Combinatorics.combinationsGenerator(maxAddEdgesCnt, addEdgesCnt);
+        Iterator<int[]> edgesCombinationGenerator = Combinatorics.combinationGenerator(maxAddEdgesCnt, addEdgesCnt);
         while (edgesCombinationGenerator.hasNext()) {
           int[] edgesIndices = edgesCombinationGenerator.next();
           graphCntGroupByAddEdgeCnt.merge(addEdgesCnt, 1, Integer::sum);

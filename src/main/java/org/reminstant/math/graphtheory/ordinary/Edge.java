@@ -1,10 +1,17 @@
-package org.reminstant.experiments;
+package org.reminstant.math.graphtheory.ordinary;
 
-public record Edge(int u, int v) {
-  public Edge {
+import org.reminstant.math.graphtheory.EdgeStructure;
+
+import java.util.Iterator;
+import java.util.List;
+
+public record Edge(int u, int v) implements EdgeStructure {
+  public Edge(int u, int v) {
     if (u < 0 || v < 0 || u == v) {
       throw new IllegalArgumentException("Invalid edge vertices");
     }
+    this.u = Math.min(u, v);
+    this.v = Math.max(u, v);
   }
 
   public boolean contains(int x) {
@@ -23,6 +30,11 @@ public record Edge(int u, int v) {
 
   public Edge mapBy(int[] mapping) {
     return new Edge(mapping[u], mapping[v]);
+  }
+
+  @Override
+  public Iterator<Integer> iterator() {
+    return List.of(u, v).iterator();
   }
 
   @Override

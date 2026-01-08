@@ -1,4 +1,4 @@
-package org.reminstant.domain;
+package org.reminstant.math.graphtheory.hyper;
 
 public record HPPruferCode(
     int edgeDimension,

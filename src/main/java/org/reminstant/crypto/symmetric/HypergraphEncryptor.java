@@ -3,7 +3,7 @@ package org.reminstant.crypto.symmetric;
 import org.reminstant.Validator;
 import org.reminstant.crypto.Bits;
 import org.reminstant.crypto.SymmetricEncryptor;
-import org.reminstant.domain.HomogenousHypergraph;
+import org.reminstant.math.graphtheory.hyper.HomogenousHypergraph;
 import org.reminstant.math.MathExtension;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

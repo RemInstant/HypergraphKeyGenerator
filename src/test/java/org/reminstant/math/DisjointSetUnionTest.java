@@ -1,5 +1,6 @@
 package org.reminstant.math;
 
+import org.reminstant.structure.DisjointSetUnion;
 import org.testng.annotations.Test;
 
 import static org.assertj.core.api.Assertions.*;

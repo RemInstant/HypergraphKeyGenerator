@@ -1,8 +1,7 @@
-package org.reminstant.domain;
+package org.reminstant.math.graphtheory.hyper;
 
-import org.reminstant.Utils;
-import org.reminstant.experiments.Edge;
-import org.reminstant.experiments.IsomorphicallyComparable;
+import org.reminstant.utils.ArrayUtils;
+import org.reminstant.math.IsomorphicallyComparable;
 
 import java.util.*;
 
@@ -116,7 +115,7 @@ public class HPHyperTree implements IsomorphicallyComparable<HPHyperTree> {
       }
 
       while (edgesCopy.size() > 1) {
-        int leaf = Utils.arrayIndexOf(degrees, 1);
+        int leaf = ArrayUtils.indexOf(degrees, 1);
         HyperEdge incidentEdge = edgesCopy.stream().filter(e -> e.contains(leaf)).findAny().orElseThrow();
         edgesCopy.remove(incidentEdge);
         for (int v : incidentEdge) {
@@ -221,7 +220,7 @@ public class HPHyperTree implements IsomorphicallyComparable<HPHyperTree> {
 //
 //    int[] pruferCode = new int[edgesCopy.size() - 1];
 //    for (int i = 0; i < pruferCode.length; ++i) {
-//      int leaf = Utils.arrayIndexOf(degrees, 1);
+//      int leaf = ArrayUtils.arrayIndexOf(degrees, 1);
 //      Edge incidentEdge = edgesCopy.stream().filter(e -> e.contains(leaf)).findAny().orElseThrow();
 //      edgesCopy.remove(incidentEdge);
 //

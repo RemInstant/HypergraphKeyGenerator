@@ -1,7 +1,8 @@
-package org.reminstant.experiments;
+package org.reminstant.math.graphtheory.ordinary;
 
 import org.reminstant.Validator;
 import org.reminstant.math.Combinatorics;
+import org.reminstant.math.IsomorphicallyComparable;
 
 import java.util.*;
 
@@ -78,6 +79,35 @@ public class Graph implements IsomorphicallyComparable<Graph> {
     List<Edge> res = new ArrayList<>(getEdges());
     res.retainAll(new HashSet<>(otherGraph.getEdges()));
     return Graph.ofEdges(res);
+  }
+
+
+
+  public boolean hasCycles() {
+    byte[] visitFlags = new byte[verticesCount];
+    for (int vertex = 0; vertex < verticesCount; ++vertex) {
+      if (executeCycleDFS(visitFlags, vertex, -1)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private boolean executeCycleDFS(byte[] visitFlags, int u, int prev) {
+    if (visitFlags[u] > 0) {
+      return true;
+    }
+    visitFlags[u] = 1;
+    for (int v : adjacencyList.get(u)) {
+      if (v == prev) {
+        continue;
+      }
+      if (executeCycleDFS(visitFlags, v, u)) {
+        return true;
+      }
+    }
+    visitFlags[u] = 0;
+    return false;
   }
 
 

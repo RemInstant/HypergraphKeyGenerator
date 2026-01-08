@@ -1,4 +1,4 @@
-package org.reminstant.math;
+package org.reminstant.structure;
 
 import java.util.Arrays;
 
@@ -10,6 +10,10 @@ public class DisjointSetUnion {
   private int componentsCount;
   private int[] leaders;
   private int[] sizes;
+
+  public DisjointSetUnion() {
+    this(0);
+  }
 
   public DisjointSetUnion(int size) {
     logicalSize = size;

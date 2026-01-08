@@ -3,7 +3,7 @@ package org.reminstant.crypto.symmetric;
 import org.reminstant.crypto.SymmetricEncryptor;
 import org.reminstant.crypto.symmetric.HypergraphEncryptor.SmallBlockSizeUnit;
 import org.reminstant.crypto.symmetric.provider.EncryptHypergraphDataProvider;
-import org.reminstant.domain.HomogenousHypergraph;
+import org.reminstant.math.graphtheory.hyper.HomogenousHypergraph;
 
 import java.util.List;
 

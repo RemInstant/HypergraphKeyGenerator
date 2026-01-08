@@ -1,25 +1,39 @@
-package org.reminstant.experiments;
+package org.reminstant.math.graphtheory.ordinary;
 
-import org.reminstant.Utils;
-import org.reminstant.math.DisjointSetUnion;
+import org.reminstant.math.IsomorphicallyComparable;
+import org.reminstant.utils.ArrayUtils;
+import org.reminstant.structure.DisjointSetUnion;
 
 import java.util.*;
 
 public class Tree implements IsomorphicallyComparable<Tree> {
 
-  private final int verticesCount;
   private final Set<Edge> edges;
+
+  private final int verticesCount;
+  private final List<SortedSet<Integer>> adjacencyList;
   private String serializedStructure;
 
 
   private Tree(int verticesCount, Set<Edge> edges) {
     this.verticesCount = verticesCount;
     this.edges = edges;
+
+    this.adjacencyList = new ArrayList<>();
+    for (int i = 0; i < verticesCount; ++i) {
+      int vertex = i;
+      List<Integer> adjacentVertices = edges.stream()
+          .filter(edge -> edge.contains(vertex))
+          .map(edge -> edge.getAdjacent(vertex))
+          .toList();
+      adjacencyList.add(new TreeSet<>(adjacentVertices));
+    }
   }
 
   public static Tree.Builder builder() {
     return new Builder();
   }
+
 
 
   public static class Builder {
@@ -28,13 +42,13 @@ public class Tree implements IsomorphicallyComparable<Tree> {
     private final NavigableSet<Integer> vertices;
     private final DisjointSetUnion dsu;
 
-    Builder() {
+    private Builder() {
       edges = new HashSet<>();
       vertices = new TreeSet<>();
       dsu = new DisjointSetUnion(0);
     }
 
-    Builder addEdge(int u, int v) {
+    public Builder addEdge(int u, int v) {
       Edge e = new Edge(u, v);
       if (edges.contains(e)) {
         return this;
@@ -54,14 +68,14 @@ public class Tree implements IsomorphicallyComparable<Tree> {
       return this;
     }
 
-    Tree build() {
+    public Tree build() {
       if (dsu.getComponentsCount() > 1) {
         throw new IllegalStateException("Vertices are not connected");
       }
       return new Tree(vertices.size(), new HashSet<>(edges));
     }
 
-    boolean canBuild() {
+    public boolean canBuild() {
       return dsu.getComponentsCount() == 1;
     }
   }
@@ -125,6 +139,10 @@ public class Tree implements IsomorphicallyComparable<Tree> {
     return List.copyOf(edges);
   }
 
+  public List<SortedSet<Integer>> getAdjacencyListView() {
+    return Collections.unmodifiableList(adjacencyList);
+  }
+
 
 
   public int[] toPruferCode() {
@@ -143,7 +161,7 @@ public class Tree implements IsomorphicallyComparable<Tree> {
 
     int[] pruferCode = new int[edgesCopy.size() - 1];
     for (int i = 0; i < pruferCode.length; ++i) {
-      int leaf = Utils.arrayIndexOf(degrees, 1);
+      int leaf = ArrayUtils.indexOf(degrees, 1);
       Edge incidentEdge = edgesCopy.stream().filter(e -> e.contains(leaf)).findAny().orElseThrow();
       edgesCopy.remove(incidentEdge);
 

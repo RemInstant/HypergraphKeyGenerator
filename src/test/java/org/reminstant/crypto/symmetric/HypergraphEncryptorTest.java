@@ -3,8 +3,8 @@ package org.reminstant.crypto.symmetric;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.reminstant.domain.HomogenousHypergraph;
-import org.reminstant.domain.HyperEdge;
+import org.reminstant.math.graphtheory.hyper.HomogenousHypergraph;
+import org.reminstant.math.graphtheory.hyper.HyperEdge;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -1,4 +1,4 @@
-package org.reminstant.experiments;
+package org.reminstant.math;
 
 import java.util.*;
 

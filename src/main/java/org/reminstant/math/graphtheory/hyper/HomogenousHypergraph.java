@@ -1,7 +1,7 @@
-package org.reminstant.domain;
+package org.reminstant.math.graphtheory.hyper;
 
 import org.reminstant.Validator;
-import org.reminstant.experiments.IsomorphicallyComparable;
+import org.reminstant.math.IsomorphicallyComparable;
 import org.reminstant.math.Combinatorics;
 
 import java.util.*;
@@ -52,7 +52,7 @@ public class HomogenousHypergraph implements IsomorphicallyComparable<Homogenous
     return graph;
   }
 
-//  public static org.reminstant.experiments.Graph ofTree(Tree tree) {
+//  public static org.reminstant.math.ordinary.graphtheory.Graph ofTree(Tree tree) {
 //    return ofEdges(tree.getEdges());
 //  }
 
@@ -66,12 +66,12 @@ public class HomogenousHypergraph implements IsomorphicallyComparable<Homogenous
 
   public Stream<HyperEdge> getEdges() {
     return edges.stream()
-        .mapToObj(idx -> HyperEdge.ofIndex(idx, verticesCount, edgeDimension));
+        .mapToObj(idx -> HyperEdge.ofEdgeIndex(idx, verticesCount, edgeDimension));
   }
 
   public Stream<HyperEdge> getEdgesIncidentTo(int vertex) {
     return edges.stream()
-        .mapToObj(edgeIndex -> HyperEdge.ofIndex(edgeIndex, verticesCount, edgeDimension))
+        .mapToObj(edgeIndex -> HyperEdge.ofEdgeIndex(edgeIndex, verticesCount, edgeDimension))
         .filter(edge -> edge.contains(vertex));
   }
 
@@ -92,7 +92,7 @@ public class HomogenousHypergraph implements IsomorphicallyComparable<Homogenous
       throw new IllegalArgumentException("One of vertices is not included in graph");
     }
 
-    int bitIndex = edge.getIndex(verticesCount);
+    int bitIndex = edge.getEdgeIndex(verticesCount);
     if (edges.get(bitIndex)) {
       return false;
     }
@@ -112,7 +112,7 @@ public class HomogenousHypergraph implements IsomorphicallyComparable<Homogenous
 //  public HomogenousHypergraph difference(HomogenousHypergraph otherGraph) {
 //    List<Edge> res = new ArrayList<>(getEdges());
 //    res.retainAll(new HashSet<>(otherGraph.getEdges()));
-//    return org.reminstant.experiments.Graph.ofEdges(res);
+//    return org.reminstant.math.ordinary.graphtheory.Graph.ofEdges(res);
 //  }
 
 
@@ -129,9 +129,9 @@ public class HomogenousHypergraph implements IsomorphicallyComparable<Homogenous
       int[] mapping = permutationGenerator.next();
       BitSet mappedEdges = new BitSet(edgeMaxCount);
       edges.stream()
-          .mapToObj(idx -> HyperEdge.ofIndex(idx, verticesCount, edgeDimension))
+          .mapToObj(idx -> HyperEdge.ofEdgeIndex(idx, verticesCount, edgeDimension))
           .map(e -> e.mapBy(mapping))
-          .mapToInt(e -> e.getIndex(verticesCount))
+          .mapToInt(e -> e.getEdgeIndex(verticesCount))
           .forEach(mappedEdges::set);
 
       if (mappedEdges.equals(otherGraph.edges)) {

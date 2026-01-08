@@ -1,6 +1,8 @@
 package org.reminstant.math;
 
-import org.reminstant.Utils;
+import org.reminstant.utils.ArrayUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.math.BigInteger;
 import java.util.*;
@@ -8,11 +10,14 @@ import java.util.function.UnaryOperator;
 import java.util.stream.IntStream;
 
 public class Combinatorics {
+  private static final Logger log = LoggerFactory.getLogger(Combinatorics.class);
+
   private Combinatorics() {}
 
   private static final int[] EMPTY_INT_ARRAY = new int[0];
 
   public static BigInteger factorial(int x) {
+    validateCombinatoricsParam(x);
     BigInteger res = BigInteger.ONE;
     for (int i = 2; i <= x; ++i) {
       res = res.multiply(BigInteger.valueOf(i));
@@ -21,6 +26,10 @@ public class Combinatorics {
   }
 
   public static BigInteger arrangementWithRepetitionCount(int n, int k) {
+    validateCombinatoricsParams(n, k);
+    if (n == 0) {
+      return BigInteger.ZERO;
+    }
     BigInteger res = BigInteger.ONE;
     for (int i = 0; i < k; ++i) {
       res = res.multiply(BigInteger.valueOf(n));
@@ -29,12 +38,11 @@ public class Combinatorics {
   }
 
   public static BigInteger combinationCount(int n, int k) {
-    throwIfNegative(Math.min(n, k), "Parameters");
-
+    validateCombinatoricsParams(n, k);
     if (k == 1) {
       return BigInteger.valueOf(n);
     }
-    if (k == n) {
+    if (k == 0 || k == n) {
       return BigInteger.ONE;
     }
     if (k > n) {
@@ -48,11 +56,30 @@ public class Combinatorics {
     return res.divide(factorial(Math.min(k, n - k)));
   }
 
+  public static BigInteger setPartitionCount(int n, int k) {
+    validateCombinatoricsParams(n, k);
+    if (k == 1 || k == n) {
+      return BigInteger.ONE;
+    }
+    if (k > n || k == 0 || n % k != 0) {
+      return BigInteger.ZERO;
+    }
+
+    int blockLength = n / k;
+    BigInteger res = BigInteger.ONE;
+
+    for (int i = 0; i + 1 < k; ++i) {
+      res = res.multiply(combinationCount(n - i * blockLength, blockLength));
+    }
+    return res.divide(factorial(k));
+  }
+
   public static int[] getCombinationByOrdinal(int n, int k, long ordinal) {
     return getCombinationByOrdinal(n, k, BigInteger.valueOf(ordinal));
   }
 
   public static int[] getCombinationByOrdinal(int n, int k, BigInteger ordinal) {
+    validateCombinatoricsParams(n, k);
     if (ordinal.compareTo(BigInteger.ZERO) < 0 || ordinal.compareTo(combinationCount(n, k)) >= 0) {
       return EMPTY_INT_ARRAY;
     }
@@ -74,19 +101,22 @@ public class Combinatorics {
     return combination;
   }
 
-  public static BigInteger getCombinationOrdinal(int n, int[] combination) {
-    int k = combination.length;
+  public static BigInteger getCombinationOrdinal(int n, int k, int[] combination) {
+    validateCombinatoricsParams(n, k);
     int[] originCombination = combination;
     combination = Arrays.copyOf(combination, k);
     Arrays.sort(combination);
 
-    boolean isValid = combination[k - 1] < n;
+    boolean isValid = k <= n && originCombination.length == k;
+    if (originCombination.length > 0) {
+      isValid &= combination[k - 1] < n;
+    }
     for (int i = 1; i < k && isValid; ++i) {
       isValid = combination[i - 1] != combination[i];
     }
     if (!isValid) {
-      throw new IllegalArgumentException("%s is not a combination of set of %d elements"
-          .formatted(Arrays.toString(originCombination), n));
+      throw new IllegalArgumentException("%s is not a %d-combination from a %d-element set"
+          .formatted(Arrays.toString(originCombination), k, n));
     }
 
     BigInteger reverseOrdinal = BigInteger.ZERO;
@@ -96,6 +126,89 @@ public class Combinatorics {
     }
 
     return combinationCount(n, k).subtract(BigInteger.ONE).subtract(reverseOrdinal);
+  }
+
+  public static int[] getSetPartitionByOrdinal(int n, int k, long ordinal) {
+    return getSetPartitionByOrdinal(n, k, BigInteger.valueOf(ordinal));
+  }
+
+  public static int[] getSetPartitionByOrdinal(int n, int k, BigInteger ordinal) {
+    validateCombinatoricsParams(n, k);
+    if (ordinal.compareTo(BigInteger.ZERO) < 0 || ordinal.compareTo(setPartitionCount(n, k)) >= 0 || k == 0) {
+      return EMPTY_INT_ARRAY;
+    }
+
+    int[] partition = new int[n];
+    boolean[] usedElements = new boolean[n];
+    int blockLength = n / k;
+
+    for (int i = 0; i < k; ++i) {
+      BigInteger div = setPartitionCount(n - (i + 1) * blockLength, k - (i + 1));
+      if (div.equals(BigInteger.ZERO)) {
+        div = BigInteger.ONE;
+      }
+      BigInteger[] tmp = ordinal.divideAndRemainder(div);
+      BigInteger blockOrdinal = tmp[0];
+      ordinal = tmp[1];
+      int[] partitionBlock = getCombinationByOrdinal(n - i * blockLength, blockLength, blockOrdinal);
+
+      for (int j = 0; j < blockLength; ++j) {
+        int value = ArrayUtils.nthIndexOf(usedElements, false, partitionBlock[j] - j);
+        partition[i * blockLength + j] = value;
+        usedElements[value] = true;
+      }
+    }
+
+    return partition;
+  }
+
+  public static BigInteger getSetPartitionOrdinal(int n, int k, int[] partition) {
+    validateCombinatoricsParams(n, k);
+    if (n == 0 && partition.length == 0) {
+      return BigInteger.ZERO;
+    }
+
+    int blockLength = k != 0 ? n / k : 1;
+    int[] originPartition = partition;
+    partition = Arrays.copyOf(partition, n);
+    Arrays.sort(partition);
+
+    boolean isValid = (n > 0) && (k > 0) && (n % k == 0);
+    isValid &= originPartition.length == n && partition[n - 1] < n;
+
+    for (int i = 1; i < n && isValid; ++i) {
+      isValid = partition[i - 1] != partition[i]; // all elements unique
+      isValid &= (i % blockLength == 0) || (originPartition[i - 1] < originPartition[i]); // block elems are sorted
+      if (i % blockLength == 0) {
+        isValid &= originPartition[i - blockLength] < originPartition[i]; // blocks are sorted
+      }
+    }
+    if (!isValid) {
+      throw new IllegalArgumentException("%s is not a partition of %d-element set into %d subsets of the same size"
+          .formatted(Arrays.toString(originPartition), n, k));
+    }
+
+    partition = originPartition;
+    List<Integer> processingElements = new ArrayList<>();
+    NavigableSet<Integer> processedElements = new TreeSet<>();
+    BigInteger ordinal = BigInteger.ZERO;
+    int[] partitionBlock = new int[blockLength];
+
+    for (int i = 0; i < k; ++i) {
+      System.arraycopy(partition, blockLength * i, partitionBlock, 0, blockLength);
+      for (int j = 0; j < blockLength; ++j) {
+        processingElements.add(partitionBlock[j]);
+        partitionBlock[j] -= processedElements.headSet(partitionBlock[j]).size();
+      }
+      processedElements.addAll(processingElements);
+      processingElements.clear();
+
+      BigInteger blockOrdinal = getCombinationOrdinal(n - i * blockLength, blockLength, partitionBlock);
+      BigInteger tailCount = setPartitionCount(n - (i + 1) * blockLength, k - (i + 1));
+      ordinal = ordinal.add(blockOrdinal.multiply(tailCount));
+    }
+
+    return ordinal;
   }
 
 
@@ -112,6 +225,10 @@ public class Combinatorics {
     }
 
     public static long arrangementWithRepetitionCount(int n, int k) {
+      if (n == 0) {
+        return 0;
+      }
+
       long res = 1;
       for (int i = 0; i < k; ++i) {
         res = Math.multiplyExact(res, n);
@@ -120,6 +237,10 @@ public class Combinatorics {
     }
 
     public static long combinationCount(int n, int k) {
+      if (k > n) {
+        return 0;
+      }
+
       long res = 1;
       for (int i = Math.max(k, n - k) + 1; i <= n; ++i) {
         res = Math.multiplyExact(res, i);
@@ -127,6 +248,21 @@ public class Combinatorics {
       for (int i = 2; i <= Math.min(k, n - k); ++i) {
         res = Math.divideExact(res, i);
       }
+      return res;
+    }
+
+    public static long setPartitionCount(int n, int k) {
+      if (k > n || k == 0 || n % k != 0) {
+        return 0;
+      }
+
+      int blockLength = n / k;
+      long res = 1;
+
+      for (int i = 0; i + 1 < k; ++i) {
+        res = Math.multiplyExact(res, Fast.combinationCount(n - i * blockLength, blockLength));
+      }
+      res = Math.divideExact(res, Fast.factorial(k));
       return res;
     }
   }
@@ -142,7 +278,7 @@ public class Combinatorics {
     }
 
     @Override
-    public boolean hasNext() { return data.length > 0; }
+    public boolean hasNext() { return data != null; }
 
     @Override
     public int[] next() {
@@ -160,18 +296,29 @@ public class Combinatorics {
         data -> getNextPermutation(n, data));
   }
 
-  public static Iterator<int[]> arrangementsWithRepetitionGenerator(int n, int k) {
-    validateCombinatoricsWithRepetitionsParams(n, k);
+  public static Iterator<int[]> arrangementWithRepetitionGenerator(int n, int k) {
+    validateCombinatoricsParams(n, k);
     return new Generator(
-        new int[k],
+        n > 0 ? new int[k] : null,
         data -> getNextArrangementWithRepetitions(n, k, data));
   }
 
-  public static Iterator<int[]> combinationsGenerator(int n, int k) {
+  public static Iterator<int[]> combinationGenerator(int n, int k) {
     validateCombinatoricsParams(n, k);
     return new Generator(
-        IntStream.range(0, k).toArray(),
+        k <= n
+            ? IntStream.range(0, k).toArray()
+            : null,
         data -> getNextCombination(n, k, data));
+  }
+
+  public static Iterator<int[]> setPartitionGenerator(int n, int k) {
+    validateCombinatoricsParams(n, k);
+    return new Generator(
+        n == k || (k > 0 && n % k == 0)
+            ? IntStream.range(0, n).toArray()
+            : null,
+        data -> getNextSetPartition(n, k, data));
   }
 
 
@@ -193,13 +340,15 @@ public class Combinatorics {
   }
 
   public static List<int[]> getArrangementsWithRepetition(int n, int k) {
-    validateCombinatoricsWithRepetitionsParams(n, k);
+    validateCombinatoricsParams(n, k);
     long cnt = Fast.arrangementWithRepetitionCount(n, k);
 
     List<int[]> arrangements = new ArrayList<>();
     int[] arrangement = new int[k];
 
-    arrangements.add(arrangement);
+    if (cnt > 0) {
+      arrangements.add(arrangement);
+    }
     for (int i = 1; i < cnt; ++i) {
       arrangement = getNextArrangementWithRepetitions(n, k, arrangement);
       arrangements.add(arrangement);
@@ -215,13 +364,31 @@ public class Combinatorics {
     List<int[]> combinations = new ArrayList<>();
     int[] combination = IntStream.range(0, k).toArray();
 
-    combinations.add(combination);
+    if (cnt > 0) {
+      combinations.add(combination);
+    }
     for (int i = 1; i < cnt; ++i) {
       combination = getNextCombination(n, k, combination);
       combinations.add(combination);
     }
 
     return combinations;
+  }
+
+  public static List<int[]> getSetPartitions(int n, int k) {
+    validateCombinatoricsParams(n, k);
+    long cnt = Fast.setPartitionCount(n, k);
+
+    List<int[]> partitions = new ArrayList<>();
+    int[] partition = IntStream.range(0, n).toArray();
+
+    partitions.add(partition);
+    for (int i = 1; i < cnt; ++i) {
+      partition = getNextSetPartition(n, k, partition);
+      partitions.add(partition);
+    }
+
+    return partitions;
   }
 
 
@@ -234,7 +401,7 @@ public class Combinatorics {
       }
     }
     if (idx1 == -1) {
-      return EMPTY_INT_ARRAY;
+      return null;
     }
 
     int idx2 = idx1 + 1;
@@ -249,11 +416,14 @@ public class Combinatorics {
     permutation[idx1] = permutation[idx2];
     permutation[idx2] = tmp;
 
-    Utils.arrayReverse(permutation, idx1 + 1, n);
+    ArrayUtils.reverseInPlace(permutation, idx1 + 1, n);
     return permutation;
   }
 
   private static int[] getNextArrangementWithRepetitions(int n, int k, int[] arrangement) {
+    if (arrangement.length == 0) {
+      return null;
+    }
     arrangement = Arrays.copyOf(arrangement, arrangement.length);
     arrangement[k - 1]++;
     boolean carry = arrangement[k - 1] == n;
@@ -265,7 +435,7 @@ public class Combinatorics {
       }
     }
     if (carry) {
-      return EMPTY_INT_ARRAY;
+      return null;
     }
     return arrangement;
   }
@@ -278,7 +448,7 @@ public class Combinatorics {
       rightElement = combination[idx + 1];
     }
     if (idx < 0) {
-      return EMPTY_INT_ARRAY;
+      return null;
     }
 
     combination = Arrays.copyOf(combination, combination.length);
@@ -290,13 +460,20 @@ public class Combinatorics {
     return combination;
   }
 
-
-
-  private static void throwIfNegative(long param, String paramName) {
-    if (param < 0) {
-      throw new IllegalArgumentException(paramName + " must be non-negative");
+  private static int[] getNextSetPartition(int n, int k, int[] partition) {
+    // TODO: MAAN, CONSTRUCT NORMAL ALGO, NOT THAT STUPIDITY...
+    if (partition.length == 0) {
+      return null;
     }
+    BigInteger ordinal = getSetPartitionOrdinal(n, k, partition);
+    BigInteger nextOrdinal = ordinal.add(BigInteger.ONE);
+    if (nextOrdinal.compareTo(setPartitionCount(n, k)) >= 0) {
+      return null;
+    }
+    return getSetPartitionByOrdinal(n, k, nextOrdinal);
   }
+
+
 
   private static void validateCombinatoricsParam(int n) {
     if (n < 0) {
@@ -305,15 +482,6 @@ public class Combinatorics {
   }
 
   private static void validateCombinatoricsParams(int n, int k) {
-    if (n < 0 || k < 0) {
-      throw new IllegalArgumentException("n and k must be non-negative");
-    }
-    if (k > n) {
-      throw new IllegalArgumentException("k must be not greater than n");
-    }
-  }
-
-  private static void validateCombinatoricsWithRepetitionsParams(int n, int k) {
     if (n < 0 || k < 0) {
       throw new IllegalArgumentException("n and k must be non-negative");
     }

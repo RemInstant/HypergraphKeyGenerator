@@ -1,13 +1,14 @@
-package org.reminstant.domain;
+package org.reminstant.math.graphtheory.hyper;
 
-import org.reminstant.Utils;
+import org.reminstant.math.graphtheory.EdgeStructure;
+import org.reminstant.utils.ArrayUtils;
 import org.reminstant.math.Combinatorics;
 
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.stream.IntStream;
 
-public class HyperEdge implements Iterable<Integer> {
+public class HyperEdge implements EdgeStructure {
 
   private final int[] edgeVertices;
 
@@ -26,13 +27,14 @@ public class HyperEdge implements Iterable<Integer> {
     return new HyperEdge(vertices);
   }
 
-  static HyperEdge ofIndex(int bitIndex, int verticesCount, int edgeDimension) {
+  // TODO: external indexator
+  static HyperEdge ofEdgeIndex(int edgeIndex, int verticesCount, int edgeDimension) {
     return new HyperEdge(Combinatorics
-        .getCombinationByOrdinal(verticesCount, edgeDimension, bitIndex));
+        .getCombinationByOrdinal(verticesCount, edgeDimension, edgeIndex));
   }
 
-  int getIndex(int verticesCount) {
-    return Combinatorics.getCombinationOrdinal(verticesCount, edgeVertices).intValueExact();
+  int getEdgeIndex(int verticesCount) {
+    return Combinatorics.getCombinationOrdinal(verticesCount, dimension(), edgeVertices).intValueExact();
   }
 
 
@@ -50,7 +52,7 @@ public class HyperEdge implements Iterable<Integer> {
   }
 
   public boolean contains(int vertex) {
-    return Utils.arrayIndexOf(edgeVertices, vertex) != -1;
+    return ArrayUtils.indexOf(edgeVertices, vertex) != -1;
   }
 
 
@@ -84,5 +86,12 @@ public class HyperEdge implements Iterable<Integer> {
   @Override
   public int hashCode() {
     return Arrays.hashCode(edgeVertices);
+  }
+
+  @Override
+  public String toString() {
+    return "HyperEdge{" +
+        "edgeVertices=" + Arrays.toString(edgeVertices) +
+        '}';
   }
 }
