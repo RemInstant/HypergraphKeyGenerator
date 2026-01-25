@@ -1,7 +1,8 @@
 package org.reminstant.experiments;
 
+import org.reminstant.math.graphtheory.hyper.HHTreeCodeFactory;
 import org.reminstant.math.graphtheory.hyper.HomogenousHyperTree;
-import org.reminstant.math.graphtheory.hyper.HomogenousHyperTreeCode;
+import org.reminstant.math.graphtheory.hyper.HHTreeCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,7 +14,7 @@ public class HypergraphPruferCodeExperiment {
         .addEdgeUnvalidated(0, 1)
         .build();
 
-    var tCode = HomogenousHyperTreeCode.ofTree(hyperTree);
+    var tCode = HHTreeCode.ofTree(hyperTree);
     var restoredHyperTree = tCode.toTree();
 
     System.out.println(hyperTree);
@@ -30,7 +31,7 @@ public class HypergraphPruferCodeExperiment {
     long duplicateCount = 0;
     long totalCount = 0;
 
-    var treeCodeGenerator = HomogenousHyperTreeCode.generator(7, 3);
+    var treeCodeGenerator = HHTreeCodeFactory.ofParams(7, 3).generator();
 
     System.out.println();
     while (treeCodeGenerator.hasNext()) {
@@ -41,7 +42,7 @@ public class HypergraphPruferCodeExperiment {
 
       try {
         tree = treeCode.toTree();
-        restoredTreeCode = HomogenousHyperTreeCode.ofTree(tree);
+        restoredTreeCode = HHTreeCode.ofTree(tree);
 //            restoredTree = HomogenousHyperTree.ofPruferCode(restoredTreeCode);
         if (!treeCode.equals(restoredTreeCode)) {
           throw new RuntimeException("not equal");

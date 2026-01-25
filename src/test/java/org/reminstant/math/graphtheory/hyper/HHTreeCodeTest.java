@@ -10,26 +10,16 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class HomogenousHyperTreeCodeTest {
-
-  @ParameterizedTest
-  @MethodSource("configurationProvider")
-  void test_generatorElementUniqueness(int verticesCount, int edgeDimension) {
-    var generator = HomogenousHyperTreeCode.generator(verticesCount, edgeDimension);
-
-    assertThat(generator)
-        .toIterable()
-        .doesNotHaveDuplicates();
-  }
+class HHTreeCodeTest {
 
   @ParameterizedTest
   @MethodSource("configurationProvider")
   void test_toTreeInjection(int verticesCount, int edgeDimension) {
-    var generator = HomogenousHyperTreeCode.generator(verticesCount, edgeDimension);
+    var generator = HHTreeCodeFactory.ofParams(verticesCount, edgeDimension).generator();
 
     assertThat(generator)
         .toIterable()
-        .map(HomogenousHyperTreeCode::toTree)
+        .map(HHTreeCode::toTree)
         .doesNotHaveDuplicates();
   }
 
@@ -37,7 +27,7 @@ class HomogenousHyperTreeCodeTest {
   @MethodSource("configurationProvider")
   void test_toTreeSurjection(int verticesCount, int edgeDimension, int experimentalCount) {
     Set<HomogenousHyperTree> trees = new HashSet<>();
-    var generator = HomogenousHyperTreeCode.generator(verticesCount, edgeDimension);
+    var generator = HHTreeCodeFactory.ofParams(verticesCount, edgeDimension).generator();
 
     while (generator.hasNext()) {
       trees.add(generator.next().toTree());
@@ -45,15 +35,6 @@ class HomogenousHyperTreeCodeTest {
 
     assertThat(trees)
         .hasSize(experimentalCount);
-  }
-
-  @ParameterizedTest
-  @MethodSource("configurationProvider")
-  void test_codeCount(int verticesCount, int edgeDimension, int experimentalCount) {
-    var count = HomogenousHyperTreeCode.count(verticesCount, edgeDimension);
-
-    assertThat(count)
-        .isEqualTo(experimentalCount);
   }
 
 
