@@ -48,35 +48,57 @@ public class Tree implements IsomorphicallyComparable<Tree> {
       dsu = new DisjointSetUnion(0);
     }
 
+    public Builder clear() {
+      edges.clear();
+      vertices.clear();
+      dsu.clear();
+      return this;
+    }
+
     public Builder addEdge(int u, int v) {
-      Edge e = new Edge(u, v);
+      return addEdge(new Edge(u, v));
+    }
+
+    public Builder addEdge(Edge e) {
+      return addEdgeInternal(true, e);
+    }
+
+    public Builder addEdgeUnvalidated(int u, int v) {
+      return addEdgeUnvalidated(new Edge(u, v));
+    }
+
+    public Builder addEdgeUnvalidated(Edge e) {
+      return addEdgeInternal(false, e);
+    }
+
+    private Builder addEdgeInternal(boolean validated, Edge e) {
       if (edges.contains(e)) {
         return this;
       }
 
-      dsu.assureSize(1 + Math.max(u, v));
+      dsu.assureSize(1 + e.v());
 
-      if (dsu.isUnited(u, v)) {
+      if (validated && dsu.isUnited(e.u(), e.v())) {
         throw new IllegalArgumentException("This edge produces a cycle");
       }
 
       edges.add(e);
-      vertices.add(u);
-      vertices.add(v);
-      dsu.unite(u, v);
+      vertices.add(e.u());
+      vertices.add(e.v());
+      dsu.unite(e.u(), e.v());
 
       return this;
     }
 
     public Tree build() {
-      if (dsu.getComponentsCount() > 1) {
+      if (!canBuild()) {
         throw new IllegalStateException("Vertices are not connected");
       }
       return new Tree(vertices.size(), new HashSet<>(edges));
     }
 
     public boolean canBuild() {
-      return dsu.getComponentsCount() == 1;
+      return dsu.getComponentsCount() == 1 && !Graph.ofEdges(edges).hasCycles();
     }
   }
 

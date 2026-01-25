@@ -11,12 +11,20 @@ import java.util.stream.Stream;
 public class HomogenousHypergraph implements IsomorphicallyComparable<HomogenousHypergraph> {
 
   private final int verticesCount;
-
   private final int edgeDimension;
-
   private final int edgeMaxCount;
-
   private final BitSet edges;
+
+  private HomogenousHypergraph(int verticesCount, int edgeDimension, BitSet edgesBitset) {
+    Validator.requireNonLess(verticesCount, 0, "verticesCount");
+    Validator.requireNonLess(edgeDimension, 2, "edgeDimension");
+
+    this.verticesCount = verticesCount;
+    this.edgeDimension = edgeDimension;
+    this.edgeMaxCount = Combinatorics.combinationCount(verticesCount, edgeDimension).intValueExact();
+    this.edges = (BitSet) edgesBitset.clone();
+    this.edges.clear(edgeMaxCount, Integer.MAX_VALUE);
+  }
 
   public HomogenousHypergraph(int verticesCount, int edgeDimension) {
     Validator.requireNonLess(verticesCount, 0, "verticesCount");
@@ -32,14 +40,14 @@ public class HomogenousHypergraph implements IsomorphicallyComparable<Homogenous
     return ofEdges(List.of(edges));
   }
 
-  public static HomogenousHypergraph ofEdges(List<HyperEdge> edges) {
+  public static HomogenousHypergraph ofEdges(Collection<HyperEdge> edges) {
     Validator.requireNonEmpty(edges, "List edges");
 
     if (edges.stream().map(HyperEdge::dimension).distinct().count() > 1) {
       throw new IllegalArgumentException("Edges has different dimensions");
     }
 
-    int edgeDimension = edges.getFirst().dimension();
+    int edgeDimension = edges.stream().map(HyperEdge::dimension).findAny().orElse(-1);
     int verticesCount = 1 + edges.stream()
         .map(HyperEdge::maxVertex)
         .max(Integer::compareTo)
@@ -52,9 +60,16 @@ public class HomogenousHypergraph implements IsomorphicallyComparable<Homogenous
     return graph;
   }
 
-//  public static org.reminstant.math.ordinary.graphtheory.Graph ofTree(Tree tree) {
-//    return ofEdges(tree.getEdges());
-//  }
+  public static HomogenousHypergraph ofTree(HomogenousHyperTree tree) {
+    return ofEdges(tree.getEdges());
+  }
+
+  public static HomogenousHypergraph ofEdgesBitset(int verticesCount, int edgeDimension,
+                                                   BitSet edgesBitset) {
+    return new HomogenousHypergraph(verticesCount, edgeDimension, edgesBitset);
+  }
+
+
 
   public int getVerticesCount() {
     return verticesCount;
@@ -67,6 +82,10 @@ public class HomogenousHypergraph implements IsomorphicallyComparable<Homogenous
   public Stream<HyperEdge> getEdges() {
     return edges.stream()
         .mapToObj(idx -> HyperEdge.ofEdgeIndex(idx, verticesCount, edgeDimension));
+  }
+
+  public BitSet getEdgesBitset() {
+    return (BitSet) edges.clone();
   }
 
   public Stream<HyperEdge> getEdgesIncidentTo(int vertex) {
@@ -102,12 +121,15 @@ public class HomogenousHypergraph implements IsomorphicallyComparable<Homogenous
   }
 
 
-
-  public HomogenousHypergraph complement() {
-    HomogenousHypergraph graph = new HomogenousHypergraph(verticesCount, edgeDimension);
-    graph.edges.xor(this.edges);
-    return graph;
+  void unionInPlace(HomogenousHypergraph other) {
+    edges.or(other.edges);
   }
+
+//  public HomogenousHypergraph complement() {
+//    HomogenousHypergraph graph = new HomogenousHypergraph(verticesCount, edgeDimension);
+//    graph.edges.xor(this.edges);
+//    return graph;
+//  }
 
 //  public HomogenousHypergraph difference(HomogenousHypergraph otherGraph) {
 //    List<Edge> res = new ArrayList<>(getEdges());

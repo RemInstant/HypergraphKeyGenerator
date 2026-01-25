@@ -58,6 +58,11 @@ public class DisjointSetUnion {
     return true;
   }
 
+  public void clear() {
+    logicalSize = 0;
+    componentsCount = 0;
+  }
+
   public void assureSize(int size) {
     if (logicalSize < size) {
       extendTo(size);
@@ -78,8 +83,8 @@ public class DisjointSetUnion {
     }
 
     logicalSize = newSize;
-    componentsCount += newSize - oldLogicalSize;
-    for (int i = oldLogicalSize; i < newSize; ++i) {
+    componentsCount += logicalSize - oldLogicalSize;
+    for (int i = oldLogicalSize; i < logicalSize; ++i) {
       leaders[i] = i;
       sizes[i] = 1;
     }

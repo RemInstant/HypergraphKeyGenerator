@@ -3,103 +3,26 @@ package org.reminstant.math.graphtheory.hyper;
 import org.reminstant.math.graphtheory.PruferCode;
 import org.reminstant.structure.Pair;
 import org.reminstant.utils.ArrayUtils;
-import org.reminstant.utils.IteratorCombiner;
-import org.reminstant.utils.IteratorMapper;
 import org.reminstant.math.graphtheory.ordinary.Tree;
-import org.reminstant.math.Combinatorics;
 
-import java.math.BigInteger;
 import java.util.*;
-import java.util.function.Function;
 
-public class HomogenousHyperTreeCode implements PruferCode<HomogenousHyperTree> {
+public class HHTreeCode implements PruferCode<HomogenousHyperTree> {
 
   private final int[] partition;
   private final int[] code;
   private final int[] joints;
   private final int edgeDimension;
 
-  private HomogenousHyperTreeCode(int[] partition, int[] code, int[] joints) {
+  HHTreeCode(int[] partition, int[] code, int[] joints) {
     this.partition = partition;
     this.code = code;
     this.joints = joints;
     this.edgeDimension = partition.length / (code.length + 1) + 1;
   }
 
-  public static BigInteger count(int verticesCount, int edgeDimension) {
-    if (edgeDimension < 2 || (verticesCount - 1) % (edgeDimension - 1) != 0) {
-      throw new IllegalArgumentException("Trees with n=%d,k=%d do not exist"
-          .formatted(verticesCount, edgeDimension));
-    }
-    if (verticesCount == 0) {
-      return BigInteger.ZERO;
-    }
-
-    // n = verticesCount
-    // k = edgeDimension
-    // t = (n-1)/(k-1)
-    // P(n,k) - partition count
-    // Q(n, k, x) - code with X maximums count
-    // R(n, k, x) - joints count for code with X maximums
-    // P(n, k)      = prod(i:0..t-1){C(n-1-(k-1)i, k-1)} / t! (set partition for [n-1, t])
-    // Q(n, k, x)   = C(t-1, x) * t^(t-1-x)
-    // R(n, k, x)   = (k-1)^(t-1-x)
-    // Q*R(n, k, x) = C(t-1, x) * (n-1)^(t-1-x)
-    // RESULT(n, k) = P(n, k) * sum(i:0..t){Q(n,k,i)R(n,k,i)}
-
-    int partitionLength = verticesCount - 1;
-    int blockLength = edgeDimension - 1;
-    int blockCount = partitionLength / blockLength;
-    BigInteger partitionLengthBig = BigInteger.valueOf(partitionLength);
-
-    BigInteger partitionCount = Combinatorics.setPartitionCount(partitionLength, blockCount);
-    BigInteger codeJointsCount = BigInteger.ZERO;
-
-    for (int i = 0; i < blockCount; ++i) {
-      codeJointsCount = codeJointsCount.add(Combinatorics
-          .combinationCount(blockCount - 1, i)
-          .multiply(partitionLengthBig.pow(blockCount - 1 - i)));
-    }
-
-    return partitionCount.multiply(codeJointsCount);
-  }
-
-  public static Iterator<HomogenousHyperTreeCode> generator(int verticesCount, int edgeDimension) {
-    if (edgeDimension < 2 || (verticesCount - 1) % (edgeDimension - 1) != 0) {
-      throw new IllegalArgumentException("Trees with n=%d,k=%d do not exist"
-          .formatted(verticesCount, edgeDimension));
-    }
-    if (verticesCount == 0) {
-      return new Iterator<>() { // TODO: Generator.of()
-        @Override public boolean hasNext() { return false; }
-        @Override public HomogenousHyperTreeCode next() { throw new NoSuchElementException(); }
-      };
-    }
-    int partitionLength = verticesCount - 1;
-    int blockLength = edgeDimension - 1;
-    int blockCount = partitionLength / blockLength;
-
-    Iterator<int[]> partitionGenerator = Combinatorics
-        .setPartitionGenerator(verticesCount - 1, blockCount);
-    Function<int[], Iterator<int[]>> codeGeneratorFunction = (ignored) -> Combinatorics
-        .arrangementWithRepetitionGenerator(blockCount + 1, blockCount - 1);
-    Function<Pair<int[],int[]>, Iterator<int[]>> jointsGeneratorFunction = (p) -> {
-      int[] code = p.second();
-      int nonRootEdgesCount = (int) Arrays.stream(code).filter(v -> v != blockCount).count();
-      return Combinatorics.arrangementWithRepetitionGenerator(blockLength, nonRootEdgesCount);
-    };
-
-    Iterator<Pair<int[], int[]>> c1 = new IteratorCombiner<>(partitionGenerator, codeGeneratorFunction);
-    Iterator<Pair<Pair<int[], int[]>, int[]>> c2 = new IteratorCombiner<>(c1, jointsGeneratorFunction);
-    return new IteratorMapper<>(c2, p -> {
-      int[] iterPartition = p.first().first();
-      int[] iterCode = p.first().second();
-      int[] iterJoints = p.second();
-      return new HomogenousHyperTreeCode(iterPartition, iterCode, iterJoints);
-    });
-  }
-
-  public static HomogenousHyperTreeCode ofTree(HomogenousHyperTree tree) {
+  // TODO: refactor?
+  public static HHTreeCode ofTree(HomogenousHyperTree tree) {
     List<HyperEdge> edges = tree.getEdges();
     int verticesCount = tree.getVerticesCount();
     if (edges.isEmpty()) {
@@ -170,7 +93,7 @@ public class HomogenousHyperTreeCode implements PruferCode<HomogenousHyperTree> 
     }
     int[] code = blockTreeBuilder.build().toPruferCode();
 
-    return new HomogenousHyperTreeCode(partition, code, joints);
+    return new HHTreeCode(partition, code, joints);
   }
 
   @Override
@@ -222,7 +145,7 @@ public class HomogenousHyperTreeCode implements PruferCode<HomogenousHyperTree> 
 
   @Override
   public final boolean equals(Object o) {
-    if (!(o instanceof HomogenousHyperTreeCode that)) return false;
+    if (!(o instanceof HHTreeCode that)) return false;
 
     return Arrays.equals(partition, that.partition) &&
         Arrays.equals(code, that.code) &&

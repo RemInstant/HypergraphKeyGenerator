@@ -21,7 +21,11 @@ public class Graph implements IsomorphicallyComparable<Graph> {
     }
   }
 
-  public static Graph ofEdges(List<Edge> edges) {
+  public static Graph ofEdges(Edge... edges) {
+    return ofEdges(List.of(edges));
+  }
+
+  public static Graph ofEdges(Collection<Edge> edges) {
     int verticesCount = 1 + edges.stream()
         .map(e -> Math.max(e.u(), e.v()))
         .max(Integer::compareTo)
