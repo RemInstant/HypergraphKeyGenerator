@@ -1,5 +1,7 @@
 package org.reminstant.utils;
 
+import java.util.function.IntPredicate;
+
 public class ArrayUtils {
   private ArrayUtils() { }
 
@@ -24,6 +26,36 @@ public class ArrayUtils {
       }
     }
     return -1;
+  }
+
+  public static boolean anyMatch(int[] array, IntPredicate predicate) {
+    for (int elem : array) {
+      if (predicate.test(elem)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public static boolean allMatch(int[] array, IntPredicate predicate) {
+    for (int elem : array) {
+      if (!predicate.test(elem)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  public static boolean hasDuplicates(int[] array) {
+    // TODO: change strategy for big arrays?
+    for (int i = 0; i < array.length; ++i) {
+      for (int j = i + 1; j < array.length; ++j) {
+        if (array[i] == array[j]) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   public static void reverseInPlace(int[] array, int from, int to) {
