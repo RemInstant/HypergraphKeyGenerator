@@ -136,7 +136,7 @@ public class HypergraphEncryptor implements SymmetricEncryptor {
         int tmpShift = smallBlockBitSize * adjacentVertex % Byte.SIZE;
 
         tmp[0] = (byte) (Byte.toUnsignedInt(tmp[0]) >>> tmpShift);
-        Bits.xorInPlace(tmp, 0, data, resultByteIndex * adjacentVertex, 1);
+        Bits.xorInPlace(tmp, 0, data, resultByteIndex, 1);
         tmp[0] <<= tmpShift;
       }
 
@@ -146,10 +146,10 @@ public class HypergraphEncryptor implements SymmetricEncryptor {
 
       tmp[0] = (byte) (Byte.toUnsignedInt(tmp[0]) >>> tmpCurVertexShift);
       if ((hypergraphAdjacencyLists[vertex].length & 1) == 1) {
-        Bits.xorInPlace(tmp, 0, data, resultCurVertexByteIndex * vertex, 1);
+        Bits.xorInPlace(tmp, 0, data, resultCurVertexByteIndex, 1);
       }
       tmp[0] &= tmpCurVertexMask;
-      Bits.xorInPlace(data, resultCurVertexByteIndex * vertex, tmp, 0, 1);
+      Bits.xorInPlace(data, resultCurVertexByteIndex, tmp, 0, 1);
       tmp[0] <<= tmpCurVertexShift;
 
       for (int adjacentVertex : hypergraphAdjacencyLists[vertex]) {
@@ -157,7 +157,7 @@ public class HypergraphEncryptor implements SymmetricEncryptor {
         int tmpShift = smallBlockBitSize * adjacentVertex % Byte.SIZE;
 
         tmp[0] = (byte) (Byte.toUnsignedInt(tmp[0]) >>> tmpShift);
-        Bits.xorInPlace(data, resultByteIndex * adjacentVertex, tmp, 0, 1);
+        Bits.xorInPlace(data, resultByteIndex, tmp, 0, 1);
         tmp[0] <<= tmpShift;
       }
     }

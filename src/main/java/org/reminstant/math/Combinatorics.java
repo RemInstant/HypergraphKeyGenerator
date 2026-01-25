@@ -10,8 +10,6 @@ import java.util.function.UnaryOperator;
 import java.util.stream.IntStream;
 
 public class Combinatorics {
-  private static final Logger log = LoggerFactory.getLogger(Combinatorics.class);
-
   private Combinatorics() {}
 
   private static final int[] EMPTY_INT_ARRAY = new int[0];
@@ -27,6 +25,9 @@ public class Combinatorics {
 
   public static BigInteger arrangementWithRepetitionCount(int n, int k) {
     validateCombinatoricsParams(n, k);
+    if (k == 0) {
+      return BigInteger.ONE;
+    }
     if (n == 0) {
       return BigInteger.ZERO;
     }
@@ -225,6 +226,9 @@ public class Combinatorics {
     }
 
     public static long arrangementWithRepetitionCount(int n, int k) {
+      if (k == 0) {
+        return 1;
+      }
       if (n == 0) {
         return 0;
       }
@@ -299,7 +303,7 @@ public class Combinatorics {
   public static Iterator<int[]> arrangementWithRepetitionGenerator(int n, int k) {
     validateCombinatoricsParams(n, k);
     return new Generator(
-        n > 0 ? new int[k] : null,
+        k == 0 || n > 0 ? new int[k] : null,
         data -> getNextArrangementWithRepetitions(n, k, data));
   }
 
