@@ -1,6 +1,6 @@
 package org.reminstant.math.combinatorics;
 
-import org.reminstant.utils.Generator;
+import org.reminstant.utils.sequence.Sequence;
 
 import java.math.BigInteger;
 
@@ -21,5 +21,5 @@ public interface DiscreteObjectFactory<T> {
 
   T getNext(T object);
 
-  Generator<T> generator();
+  Sequence<T> sequence();
 }

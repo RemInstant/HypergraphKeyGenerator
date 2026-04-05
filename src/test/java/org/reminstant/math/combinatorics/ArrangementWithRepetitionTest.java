@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.reminstant.junit.converter.CsvToIntArray;
-import org.reminstant.utils.Generator;
+import org.reminstant.utils.sequence.Sequence;
 
 import java.math.BigInteger;
 import java.util.List;
@@ -125,7 +125,7 @@ class ArrangementWithRepetitionTest {
         new int[]{ 3, 3, 0 }, new int[]{ 3, 3, 1 }, new int[]{ 3, 3, 2 }, new int[]{ 3, 3, 3 }
     );
 
-    Generator<int[]> generator = ArrangementWithRepetitionFactory.ofParams(4, 3).generator();
+    Sequence<int[]> generator = ArrangementWithRepetitionFactory.ofParams(4, 3).sequence();
 
     assertThat(generator)
         .toIterable()
@@ -150,9 +150,9 @@ class ArrangementWithRepetitionTest {
     ArrangementWithRepetitionFactory factory = ArrangementWithRepetitionFactory.ofParams(n, k);
 
     BigInteger count = factory.count();
-    Generator<?> generator = factory.generator();
+    Sequence<?> sequence = factory.sequence();
 
-    assertThat(generator)
+    assertThat(sequence)
         .toIterable()
         .hasSize(count.intValueExact());
   }

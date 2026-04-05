@@ -31,7 +31,7 @@ public class HypergraphPruferCodeExperiment {
     long duplicateCount = 0;
     long totalCount = 0;
 
-    var treeCodeGenerator = HHTreeCodeFactory.ofParams(7, 3).generator();
+    var treeCodeGenerator = HHTreeCodeFactory.ofParams(7, 3).sequence();
 
     System.out.println();
     while (treeCodeGenerator.hasNext()) {

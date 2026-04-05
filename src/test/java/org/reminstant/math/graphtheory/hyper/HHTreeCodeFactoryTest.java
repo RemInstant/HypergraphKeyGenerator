@@ -123,7 +123,7 @@ class HHTreeCodeFactoryTest {
 //        new int[]{ 3, 3, 0 }, new int[]{ 3, 3, 1 }, new int[]{ 3, 3, 2 }, new int[]{ 3, 3, 3 }
 //    );
 //
-//    Generator<int[]> generator = HHTreeCodeFactory.ofParams(4, 3).generator();
+//    Sequence<int[]> generator = HHTreeCodeFactory.ofParams(4, 3).generator();
 //
 //    assertThat(generator)
 //        .toIterable()
@@ -133,8 +133,8 @@ class HHTreeCodeFactoryTest {
 
   @ParameterizedTest
   @MethodSource("configurationProvider")
-  void test_generator_count(int verticesCount, int edgeDimension, BigInteger expectedCount) {
-    var generator = HHTreeCodeFactory.ofParams(verticesCount, edgeDimension).generator();
+  void test_sequence_count(int verticesCount, int edgeDimension, BigInteger expectedCount) {
+    var generator = HHTreeCodeFactory.ofParams(verticesCount, edgeDimension).sequence();
 
     assertThat(generator.getRemaining())
         .hasSize(expectedCount.intValueExact());
@@ -143,7 +143,7 @@ class HHTreeCodeFactoryTest {
   @ParameterizedTest
   @MethodSource("configurationProvider")
   void test_generator_elementUniqueness(int verticesCount, int edgeDimension) {
-    var generator = HHTreeCodeFactory.ofParams(verticesCount, edgeDimension).generator();
+    var generator = HHTreeCodeFactory.ofParams(verticesCount, edgeDimension).sequence();
 
     assertThat(generator)
         .toIterable()
@@ -161,7 +161,7 @@ class HHTreeCodeFactoryTest {
       codes.add(factory.byOrdinal(BigInteger.valueOf(i)));
     }
 
-    var generator = factory.generator();
+    var generator = factory.sequence();
 
     assertThat(generator)
         .toIterable()
@@ -187,7 +187,7 @@ class HHTreeCodeFactoryTest {
 //    HHTreeCodeFactory factory = HHTreeCodeFactory.ofParams(verticesCount, edgeDimension);
 //
 //    BigInteger count = factory.count();
-//    Generator<?> generator = factory.generator();
+//    Sequence<?> generator = factory.generator();
 //
 //    assertThat(generator)
 //        .toIterable()

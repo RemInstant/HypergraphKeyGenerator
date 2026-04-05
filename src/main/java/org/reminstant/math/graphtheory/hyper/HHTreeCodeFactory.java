@@ -6,7 +6,7 @@ import org.reminstant.math.combinatorics.CombinationFactory;
 import org.reminstant.math.combinatorics.DiscreteObjectFactory;
 import org.reminstant.math.combinatorics.UniformPartitionFactory;
 import org.reminstant.structure.Pair;
-import org.reminstant.utils.*;
+import org.reminstant.utils.sequence.Sequence;
 
 import java.math.BigInteger;
 import java.util.*;
@@ -125,21 +125,21 @@ public class HHTreeCodeFactory implements DiscreteObjectFactory<HHTreeCode> {
     return getNextInner(combination);
   }
 
-  public Generator<HHTreeCode> generator() {
-    Generator<Integer> nonRootCountGenerator = SourceGenerator
+  public Sequence<HHTreeCode> sequence() {
+    Sequence<Integer> nonRootCountGenerator = Sequence
         .ofSource(IntStream.range(0, blockCount).map(x -> blockCount - 1 - x).toArray());
 
-    Function<Integer, Generator<Pair<int[], int[]>>> codeJointsGeneratorFunction = nonRootCount ->
-        nonRootIndicesFactories.get(nonRootCount).generator()
-            .combine(conditionalCodeFactories.get(nonRootCount).generator())
+    Function<Integer, Sequence<Pair<int[], int[]>>> codeJointsGeneratorFunction = nonRootCount ->
+        nonRootIndicesFactories.get(nonRootCount).sequence()
+            .combine(conditionalCodeFactories.get(nonRootCount).sequence())
             .map(x -> constructCodeFromConditional(x.second(), x.first()))
-            .combine(jointsFactories.get(nonRootCount).generator());
+            .combine(jointsFactories.get(nonRootCount).sequence());
 
     var codeJointsGenerator = nonRootCountGenerator
         .combine(codeJointsGeneratorFunction)
         .map(Pair::second);
 
-    return partitionFactory.generator()
+    return partitionFactory.sequence()
         .combine(codeJointsGenerator)
         .map(p -> {
           int[] iterPartition = p.first();

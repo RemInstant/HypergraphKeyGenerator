@@ -5,7 +5,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.reminstant.junit.converter.CsvToIntArray;
 import org.reminstant.math.Combinatorics;
-import org.reminstant.utils.Generator;
+import org.reminstant.utils.sequence.Sequence;
 
 import java.math.BigInteger;
 import java.util.List;
@@ -128,7 +128,7 @@ class UniformPartitionTest {
         new int[]{ 0, 5, 1, 2, 3, 4 }, new int[]{ 0, 5, 1, 3, 2, 4 }, new int[]{ 0, 5, 1, 4, 2, 3 }
     );
 
-    Generator<int[]> generator = UniformPartitionFactory.ofParams(6, 3).generator();
+    Sequence<int[]> generator = UniformPartitionFactory.ofParams(6, 3).sequence();
 
     assertThat(generator)
         .toIterable()
@@ -161,7 +161,7 @@ class UniformPartitionTest {
     UniformPartitionFactory factory = UniformPartitionFactory.ofParams(n, k);
 
     BigInteger count = factory.count();
-    Generator<?> generator = factory.generator();
+    Sequence<?> generator = factory.sequence();
 
     assertThat(generator)
         .toIterable()

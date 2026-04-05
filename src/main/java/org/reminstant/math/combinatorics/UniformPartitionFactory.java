@@ -2,9 +2,8 @@ package org.reminstant.math.combinatorics;
 
 import org.reminstant.math.Combinatorics;
 import org.reminstant.utils.ArrayUtils;
-import org.reminstant.utils.Generator;
+import org.reminstant.utils.sequence.Sequence;
 import org.reminstant.utils.Lazy;
-import org.reminstant.utils.TransformGenerator;
 
 import java.math.BigInteger;
 import java.util.*;
@@ -113,8 +112,8 @@ public class UniformPartitionFactory implements DiscreteObjectFactory<int[]> {
     return getNextInner(partition);
   }
 
-  public Generator<int[]> generator() {
-    return TransformGenerator.of(
+  public Sequence<int[]> sequence() {
+    return Sequence.ofTransformation(
         this::getNextInner,
         n == k || (k > 0 && n % k == 0)
             ? IntStream.range(0, n).toArray()

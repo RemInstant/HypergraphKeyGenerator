@@ -1,9 +1,8 @@
 package org.reminstant.math.combinatorics;
 
 import org.reminstant.utils.ArrayUtils;
-import org.reminstant.utils.Generator;
+import org.reminstant.utils.sequence.Sequence;
 import org.reminstant.utils.Lazy;
-import org.reminstant.utils.TransformGenerator;
 
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -57,8 +56,8 @@ public class PermutationFactory implements DiscreteObjectFactory<int[]> {
     return getNextInner(permutation);
   }
 
-  public Generator<int[]> generator() {
-    return TransformGenerator.of(
+  public Sequence<int[]> sequence() {
+    return Sequence.ofTransformation(
         this::getNextInner,
         IntStream.range(0, n).toArray());
   }

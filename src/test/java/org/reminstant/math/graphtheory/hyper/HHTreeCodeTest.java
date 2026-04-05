@@ -15,7 +15,7 @@ class HHTreeCodeTest {
   @ParameterizedTest
   @MethodSource("configurationProvider")
   void test_toTreeInjection(int verticesCount, int edgeDimension) {
-    var generator = HHTreeCodeFactory.ofParams(verticesCount, edgeDimension).generator();
+    var generator = HHTreeCodeFactory.ofParams(verticesCount, edgeDimension).sequence();
 
     assertThat(generator)
         .toIterable()
@@ -27,7 +27,7 @@ class HHTreeCodeTest {
   @MethodSource("configurationProvider")
   void test_toTreeSurjection(int verticesCount, int edgeDimension, int experimentalCount) {
     Set<HomogenousHyperTree> trees = new HashSet<>();
-    var generator = HHTreeCodeFactory.ofParams(verticesCount, edgeDimension).generator();
+    var generator = HHTreeCodeFactory.ofParams(verticesCount, edgeDimension).sequence();
 
     while (generator.hasNext()) {
       trees.add(generator.next().toTree());

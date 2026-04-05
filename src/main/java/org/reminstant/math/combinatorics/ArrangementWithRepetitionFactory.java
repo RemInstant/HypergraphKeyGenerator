@@ -1,8 +1,7 @@
 package org.reminstant.math.combinatorics;
 
-import org.reminstant.utils.Generator;
+import org.reminstant.utils.sequence.Sequence;
 import org.reminstant.utils.Lazy;
-import org.reminstant.utils.TransformGenerator;
 
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -76,8 +75,8 @@ public class ArrangementWithRepetitionFactory implements DiscreteObjectFactory<i
     return getNextInner(arrangement);
   }
 
-  public Generator<int[]> generator() {
-    return TransformGenerator.of(
+  public Sequence<int[]> sequence() {
+    return Sequence.ofTransformation(
         this::getNextInner,
         k == 0 || n > 0 ? new int[k] : null);
   }

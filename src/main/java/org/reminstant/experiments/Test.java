@@ -1,7 +1,6 @@
 package org.reminstant.experiments;
 
-import org.reminstant.math.graphtheory.HypergraphAnalyzer;
-import org.reminstant.math.graphtheory.hyper.HyperTreeRandomGenerator;
+import org.reminstant.math.graphtheory.hyper.HomogenousHyperTree;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -10,16 +9,22 @@ public class Test {
 
   public static void main(String[] args) {
 
-    var g = new HyperTreeRandomGenerator(256, 4, 30, 1235);
+    HomogenousHyperTree tree = HomogenousHyperTree.builder()
+        .addEdge(0, 1, 2)
+        .addEdge(2, 3, 4)
+        .addEdge(4, 5, 6)
+        .build();
 
-    var graph = g.next();
+//    var g = new HHRandomGenerator(256, 4, 30, 1235);
+
+//    var graph = g.next();
 
 //    log.info("{}", graph.getEdges().toList());
 //    log.info("{}", graph.getEdgesBitset().toByteArray());
 
-    var analyzer = new HypergraphAnalyzer(graph);
+//    var analyzer = new HypergraphAnalyzer(graph);
 
-    log.info("{}", analyzer.getIncidenceProportion());
+//    log.info("{}", analyzer.getIncidenceProportion());
 //    log.info("{}", analyzer.getIncidenceProportionByVertices());
 
 //    var factory = HHTreeCodeFactory.ofParams(4, 2);
