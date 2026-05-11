@@ -5,6 +5,9 @@ import org.reminstant.math.IsomorphicallyComparable;
 import org.reminstant.math.Combinatorics;
 
 import java.util.*;
+import java.util.function.Function;
+import java.util.function.IntFunction;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -75,6 +78,10 @@ public class HomogenousHypergraph implements IsomorphicallyComparable<Homogenous
     return verticesCount;
   }
 
+  public int getEdgeCount() {
+    return edges.cardinality();
+  }
+
   public int getEdgeDimension() {
     return edgeDimension;
   }
@@ -101,6 +108,20 @@ public class HomogenousHypergraph implements IsomorphicallyComparable<Homogenous
         .filter(v -> v != vertex);
   }
 
+  public List<Integer> getDegreesList() {
+    List<Integer> degreesList = new ArrayList<>(getVerticesCount());
+    for (int i = 0; i < getVerticesCount(); ++i) {
+      degreesList.add(0);
+    }
+
+    edges.stream()
+        .mapToObj(edgeIndex -> HyperEdge.ofEdgeIndex(edgeIndex, verticesCount, edgeDimension))
+        .flatMapToInt(HyperEdge::stream)
+        .forEach(v -> degreesList.set(v, degreesList.get(v) + 1));
+
+    return degreesList;
+  }
+
 
 
   public boolean addEdge(HyperEdge edge) {
@@ -118,6 +139,12 @@ public class HomogenousHypergraph implements IsomorphicallyComparable<Homogenous
 
     edges.set(bitIndex);
     return true;
+  }
+
+  public boolean contains(HomogenousHypergraph other) {
+    BitSet edgesCopy = (BitSet) edges.clone();
+    edgesCopy.or(other.edges);
+    return edges.equals(edgesCopy);
   }
 
 

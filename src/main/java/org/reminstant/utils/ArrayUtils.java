@@ -28,6 +28,16 @@ public class ArrayUtils {
     return -1;
   }
 
+  public static int count(int[] array, int elem) {
+    int count = 0;
+    for (int j = 0; j < array.length; ++j) {
+      if (array[j] == elem) {
+        count++;
+      }
+    }
+    return count;
+  }
+
   public static boolean anyMatch(int[] array, IntPredicate predicate) {
     for (int elem : array) {
       if (predicate.test(elem)) {

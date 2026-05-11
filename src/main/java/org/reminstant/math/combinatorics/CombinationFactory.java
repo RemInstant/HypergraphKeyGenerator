@@ -107,7 +107,7 @@ public class CombinationFactory implements DiscreteObjectFactory<int[]> {
 
     BigInteger res = BigInteger.ONE;
     for (int i = Math.max(k, n - k) + 1; i <= n; ++i) {
-      res = res.multiply(BigInteger.valueOf(i));
+      res = res.parallelMultiply(BigInteger.valueOf(i));
     }
     return res.divide(Combinatorics.factorial(Math.min(k, n - k)));
   }

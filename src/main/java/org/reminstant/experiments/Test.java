@@ -1,21 +1,35 @@
 package org.reminstant.experiments;
 
-import org.reminstant.math.graphtheory.hyper.HomogenousHyperTree;
+import org.reminstant.math.graphtheory.hyper.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.nio.file.Path;
 
 public class Test {
   private static final Logger log = LoggerFactory.getLogger(Test.class);
 
   public static void main(String[] args) {
 
-    HomogenousHyperTree tree = HomogenousHyperTree.builder()
-        .addEdge(0, 1, 2)
-        .addEdge(2, 3, 4)
-        .addEdge(4, 5, 6)
-        .build();
+//    var g = new HHOverlappingGenerator(5, 3, 10, 777);
+    var g = new HHExtendingGenerator(7, 4, 4, 6, 777);
+//    var g = new HHFixedExtendingGenerator(13, 5, 3, 777);
+    var analyzer = new HHGeneratorAnalyzer(g, 5000000);
 
-//    var g = new HHRandomGenerator(256, 4, 30, 1235);
+//    long iter = 0;
+//    HomogenousHypergraph graph = null;
+//    while (graph == null || graph.getEdgeCount() < 35) {
+//      graph = g.next();
+//      iter++;
+//      if (iter % 1000000 == 0) {
+//        log.info("iter {}", iter);
+//      }
+//    }
+
+    Path path = Path.of("distribution");
+    analyzer.analyze(path, false);
+
+//    var g = new HHOverlappingGenerator(256, 4, 30, 1235);
 
 //    var graph = g.next();
 

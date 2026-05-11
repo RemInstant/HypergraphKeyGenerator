@@ -1,5 +1,7 @@
 package org.reminstant.math.graphtheory.ordinary;
 
+import org.reminstant.math.Combinatorics;
+import org.reminstant.math.combinatorics.CombinationFactory;
 import org.reminstant.math.graphtheory.EdgeStructure;
 
 import java.util.Iterator;
