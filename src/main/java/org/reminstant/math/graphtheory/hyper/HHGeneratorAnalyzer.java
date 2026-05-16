@@ -21,23 +21,29 @@ public class HHGeneratorAnalyzer {
 
   private final Generator<HomogenousHypergraph> generator;
   private final int generationCount;
+  private final int minEdgeCount;
+  private final int maxEdgeCount;
   private final Map<HomogenousHypergraph, Integer> counter;
   private final Map<Integer, Integer> counterByEdgeCount;
 
-  public HHGeneratorAnalyzer(Generator<HomogenousHypergraph> generator, int generationCount) {
+  public HHGeneratorAnalyzer(Generator<HomogenousHypergraph> generator, int generationCount,
+                             int minEdgeCount, int maxEdgeCount) {
     this.generator = generator;
     this.generationCount = generationCount;
+    this.minEdgeCount = minEdgeCount;
+    this.maxEdgeCount = maxEdgeCount;
     this.counter = new HashMap<>();
     this.counterByEdgeCount = new HashMap<>();
   }
 
-  public void analyze(Path outputPath, boolean writeExtraInfo) {
+  public void analyze(String outputPrefix) {
     HomogenousHypergraph hypergraph = generator.next();
     counter.merge(hypergraph, 1, Integer::sum);
     counterByEdgeCount.merge(hypergraph.getEdgeCount(), 1, Integer::sum);
 
     int verticesCount = hypergraph.getVerticesCount();
     int edgeDimension = hypergraph.getEdgeDimension();
+    int maxDegree = CombinationFactory.ofParams(verticesCount - 1, edgeDimension - 1).count().intValue();
     BigInteger connectedCount = getConnectedHomogenousHypergraphCount(verticesCount, edgeDimension);
 
     if (connectedCount.compareTo(BigInteger.ZERO) == 0) {
@@ -76,7 +82,7 @@ public class HHGeneratorAnalyzer {
     log.info("Mean count: {}", mean);
     log.info("Max error: {}", maxError);
 
-    if (outputPath == null) {
+    if (outputPrefix == null) {
       return;
     }
 
@@ -85,44 +91,95 @@ public class HHGeneratorAnalyzer {
       uniqueGraphCountBySize.merge(key.getEdgeCount(), 1, Integer::sum);
     }
 
-    try (var writer = Files.newBufferedWriter(outputPath,
+    Path graphDistributionPath = Path.of(outputPrefix + "graph");
+    Path graphExtraDistributionPath = Path.of(outputPrefix + "graph_extra");
+    Path vertexDistributionPath = Path.of(outputPrefix + "vertex");
+    Path edgeDistributionPath = Path.of(outputPrefix + "edge");
+
+    try (var writer = Files.newBufferedWriter(graphDistributionPath,
         StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
       for (var entry : counter.entrySet()) {
         writer.write(String.valueOf(entry.getValue()));
-//        writer.write(", ");
-//        writer.write(String.valueOf(entry.getKey().getEdgeCount()));
         writer.newLine();
       }
-      if (writeExtraInfo) {
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+
+    try (var writer = Files.newBufferedWriter(graphExtraDistributionPath,
+        StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
+      writer.newLine();
+      writer.write("Graph entries by size");
+      writer.newLine();
+      for (var entry : counterByEdgeCount.entrySet()) {
+        writer.write(String.valueOf(entry.getKey()));
+        writer.write(": ");
+        writer.write(String.valueOf(entry.getValue()));
         writer.newLine();
-        writer.write("Graph entries by size");
+      }
+      writer.newLine();
+      writer.write("Unique graph count by size");
+      writer.newLine();
+      for (var entry : uniqueGraphCountBySize.entrySet()) {
+        writer.write(String.valueOf(entry.getKey()));
+        writer.write(": ");
+        writer.write(String.valueOf(entry.getValue()));
         writer.newLine();
-        for (var entry : counterByEdgeCount.entrySet()) {
-          writer.write(String.valueOf(entry.getKey()));
-          writer.write(": ");
-          writer.write(String.valueOf(entry.getValue()));
-          writer.newLine();
-        }
+      }
+      writer.newLine();
+      writer.write("Mean entries by size");
+      writer.newLine();
+      for (var entry : uniqueGraphCountBySize.entrySet()) {
+        int total = counterByEdgeCount.get(entry.getKey());
+        int count = entry.getValue();
+        writer.write(String.valueOf(entry.getKey()));
+        writer.write(": ");
+        writer.write(String.valueOf(1. * total / count));
         writer.newLine();
-        writer.write("Unique graph count by size");
+      }
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+
+    int[] degreesCount = new int[maxDegree + 1];
+    for (var entry : counter.entrySet()) {
+      HomogenousHypergraph key = entry.getKey();
+      int count = entry.getValue();
+      degreesCount[key.getDegreesList().getFirst()] += count;
+    }
+
+    try (var writer = Files.newBufferedWriter(vertexDistributionPath,
+        StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
+      writer.write(verticesCount + " ");
+      writer.write(edgeDimension + " ");
+      writer.write(minEdgeCount + " ");
+      writer.write(maxEdgeCount + " ");
+      writer.write(generationCount + " ");
+      writer.newLine();
+      for (int i = 0; i <= maxDegree; ++i) {
+        writer.write(String.valueOf(degreesCount[i]));
         writer.newLine();
-        for (var entry : uniqueGraphCountBySize.entrySet()) {
-          writer.write(String.valueOf(entry.getKey()));
-          writer.write(": ");
-          writer.write(String.valueOf(entry.getValue()));
-          writer.newLine();
-        }
+      }
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+
+    int[] edgeCounts = new int[maxEdgeCount + 1];
+    for (var entry : counter.entrySet()) {
+      HomogenousHypergraph key = entry.getKey();
+      int count = entry.getValue();
+      edgeCounts[key.getEdgeCount()] += count;
+    }
+
+    try (var writer = Files.newBufferedWriter(edgeDistributionPath,
+        StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
+      writer.write(minEdgeCount + " ");
+      writer.write(maxEdgeCount + " ");
+      writer.write(generationCount + " ");
+      writer.newLine();
+      for (int i = minEdgeCount; i <= maxEdgeCount; ++i) {
+        writer.write(String.valueOf(edgeCounts[i]));
         writer.newLine();
-        writer.write("Mean entries by size");
-        writer.newLine();
-        for (var entry : uniqueGraphCountBySize.entrySet()) {
-          int total = counterByEdgeCount.get(entry.getKey());
-          int count = entry.getValue();
-          writer.write(String.valueOf(entry.getKey()));
-          writer.write(": ");
-          writer.write(String.valueOf(1. * total / count));
-          writer.newLine();
-        }
       }
     } catch (IOException e) {
       throw new RuntimeException(e);

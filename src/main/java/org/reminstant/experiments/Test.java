@@ -11,10 +11,15 @@ public class Test {
 
   public static void main(String[] args) {
 
+    int verticesCount = 7;
+    int edgeDimension = 3;
+    int edgeMinCount = 10;
+    int edgeMaxCount = 15;
+
 //    var g = new HHOverlappingGenerator(5, 3, 10, 777);
-    var g = new HHExtendingGenerator(7, 4, 4, 6, 777);
+    var g = new HHExtendingGenerator(verticesCount, edgeDimension, edgeMinCount, edgeMaxCount, 3351);
 //    var g = new HHFixedExtendingGenerator(13, 5, 3, 777);
-    var analyzer = new HHGeneratorAnalyzer(g, 5000000);
+    var analyzer = new HHGeneratorAnalyzer(g, 200000, edgeMinCount, edgeMaxCount);
 
 //    long iter = 0;
 //    HomogenousHypergraph graph = null;
@@ -26,8 +31,7 @@ public class Test {
 //      }
 //    }
 
-    Path path = Path.of("distribution");
-    analyzer.analyze(path, false);
+    analyzer.analyze("distribution__");
 
 //    var g = new HHOverlappingGenerator(256, 4, 30, 1235);
 

@@ -44,7 +44,7 @@ public class HHExtendingGenerator implements Generator<HomogenousHypergraph> {
 
     int additionalEdgeMaxCount = edgeMaxCount - treeEdgeCount;
     this.additionalEdgeMinCount = edgeMinCount - treeEdgeCount;
-    int delta = additionalEdgeMaxCount - additionalEdgeMinCount;
+    int delta = additionalEdgeMaxCount - additionalEdgeMinCount + 1;
 
     this.random = random;
     this.hyperTreeGenerator = new HyperTreeGenerator(verticesCount, edgeDimension, random);
