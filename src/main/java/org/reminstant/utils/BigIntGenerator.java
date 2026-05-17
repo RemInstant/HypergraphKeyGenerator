@@ -3,7 +3,6 @@ package org.reminstant.utils;
 import java.math.BigInteger;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-import java.util.Arrays;
 import java.util.Random;
 import java.util.random.RandomGenerator;
 
@@ -12,6 +11,9 @@ public class BigIntGenerator implements Generator<BigInteger> {
   private final BigInteger maxExclusive;
   private final RandomGenerator random;
   private final byte[] randomData;
+  private final int numBits;
+  private final int leadingZeros;
+  private final byte firstByteMask;
 
   public BigIntGenerator(BigInteger maxExclusive, RandomGenerator random) {
     if (maxExclusive.compareTo(BigInteger.ZERO) <= 0) {
@@ -20,12 +22,12 @@ public class BigIntGenerator implements Generator<BigInteger> {
 
     this.maxExclusive = maxExclusive;
     this.random = random;
+    this.numBits = maxExclusive.subtract(BigInteger.ONE).bitLength();
 
-    byte[] maxIndexAsBytes = maxExclusive.subtract(BigInteger.ONE).toByteArray();
-    if (maxIndexAsBytes[0] == 0) {
-      maxIndexAsBytes = Arrays.copyOfRange(maxIndexAsBytes, 1, maxIndexAsBytes.length);
-    }
-    this.randomData = maxIndexAsBytes;
+    int numBytes = (numBits + 7) / 8;
+    this.randomData = new byte[numBytes];
+    this.leadingZeros = numBytes * 8 - numBits;
+    this.firstByteMask = (byte) ((1 << (8 - leadingZeros)) - 1);
   }
 
   public BigIntGenerator(BigInteger maxExclusive, long seed) {
@@ -39,9 +41,13 @@ public class BigIntGenerator implements Generator<BigInteger> {
 
   @Override
   public BigInteger next() {
+    if (numBits == 0) {
+      return BigInteger.ZERO;
+    }
     BigInteger value;
     do {
       random.nextBytes(randomData);
+      randomData[0] &= firstByteMask;
       value = new BigInteger(1, randomData);
     } while (value.compareTo(maxExclusive) >= 0);
 

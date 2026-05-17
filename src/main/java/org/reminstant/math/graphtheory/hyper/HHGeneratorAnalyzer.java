@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.Writer;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
@@ -76,11 +77,18 @@ public class HHGeneratorAnalyzer {
       uniqueMax = Math.max(uniqueMax, count);
     }
 
+
+    double pMin = 1. * Collections.min(counter.values()) / generationCount;
+    double pMax = 1. * Collections.max(counter.values()) / generationCount;
+
     log.info("Generated {} unique hypergraphs of {} possible", counter.size(), connectedCount);
     log.info("Unique hypergraph counter min: {}", uniqueMin);
     log.info("Unique hypergraph counter max: {}", uniqueMax);
     log.info("Mean count: {}", mean);
     log.info("Max error: {}", maxError);
+    log.info("pMin: {}", pMin);
+    log.info("pMax: {}", pMax);
+    log.info("R: {}", pMax / pMin);
 
     if (outputPrefix == null) {
       return;
@@ -98,8 +106,11 @@ public class HHGeneratorAnalyzer {
 
     try (var writer = Files.newBufferedWriter(graphDistributionPath,
         StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
+      writeConfigData(writer, verticesCount, edgeDimension);
       for (var entry : counter.entrySet()) {
         writer.write(String.valueOf(entry.getValue()));
+        writer.write(' ');
+        writer.write(String.valueOf(entry.getKey().getEdgeCount()));
         writer.newLine();
       }
     } catch (IOException e) {
@@ -150,12 +161,7 @@ public class HHGeneratorAnalyzer {
 
     try (var writer = Files.newBufferedWriter(vertexDistributionPath,
         StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
-      writer.write(verticesCount + " ");
-      writer.write(edgeDimension + " ");
-      writer.write(minEdgeCount + " ");
-      writer.write(maxEdgeCount + " ");
-      writer.write(generationCount + " ");
-      writer.newLine();
+      writeConfigData(writer, verticesCount, edgeDimension);
       for (int i = 0; i <= maxDegree; ++i) {
         writer.write(String.valueOf(degreesCount[i]));
         writer.newLine();
@@ -184,6 +190,14 @@ public class HHGeneratorAnalyzer {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  private void writeConfigData(Writer writer, int verticesCount, int edgeDimension) throws IOException {
+    writer.write(verticesCount + " ");
+    writer.write(edgeDimension + " ");
+    writer.write(minEdgeCount + " ");
+    writer.write(maxEdgeCount + " ");
+    writer.write(System.lineSeparator());
   }
 
   private static BigInteger getConnectedHomogenousHypergraphCount(int n, int k) {

@@ -4,22 +4,20 @@ import org.reminstant.math.graphtheory.hyper.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.nio.file.Path;
-
 public class Test {
   private static final Logger log = LoggerFactory.getLogger(Test.class);
 
   public static void main(String[] args) {
 
-    int verticesCount = 7;
+    int verticesCount = 5;
     int edgeDimension = 3;
-    int edgeMinCount = 10;
-    int edgeMaxCount = 15;
+    int edgeMinCount = 4;
+    int edgeMaxCount = 8;
 
 //    var g = new HHOverlappingGenerator(5, 3, 10, 777);
-    var g = new HHExtendingGenerator(verticesCount, edgeDimension, edgeMinCount, edgeMaxCount, 3351);
+    var g = new HHExtendingGenerator(verticesCount, edgeDimension, edgeMinCount, edgeMaxCount);
 //    var g = new HHFixedExtendingGenerator(13, 5, 3, 777);
-    var analyzer = new HHGeneratorAnalyzer(g, 200000, edgeMinCount, edgeMaxCount);
+    var analyzer = new HHGeneratorAnalyzer(g, 5_000_000, edgeMinCount, edgeMaxCount);
 
 //    long iter = 0;
 //    HomogenousHypergraph graph = null;

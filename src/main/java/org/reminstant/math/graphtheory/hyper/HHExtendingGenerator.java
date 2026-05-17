@@ -103,6 +103,21 @@ public class HHExtendingGenerator implements Generator<HomogenousHypergraph> {
       int additionalEdgeMaxCount = edgeMaxCount - treeEdgeCount - i;
       int edgeIndex = random.nextInt(additionalEdgeMaxCount);
 
+//      int indexShiftLeft = 0;
+//      int indexShiftRight = treeEdgeIndices.size();
+//      while (indexShiftLeft < indexShiftRight) {
+//        int prob = (indexShiftLeft + indexShiftRight) / 2;
+//        int check = treeEdgeIndices.headSet(edgeIndex + prob + 1).size();
+//        if (prob < check) {
+//          indexShiftLeft = prob + 1;
+//        } else {
+//          indexShiftRight = prob;
+//        }
+//      }
+//      int shiftedIndex = edgeIndex + indexShiftLeft;
+
+
+
       int indexShift;
       int shiftedIndex = edgeIndex;
       do {
@@ -110,9 +125,9 @@ public class HHExtendingGenerator implements Generator<HomogenousHypergraph> {
         shiftedIndex = edgeIndex + indexShift;
       } while (indexShift < treeEdgeIndices.headSet(shiftedIndex + 1).size());
 
-      HyperEdge e = HyperEdge.ofEdgeIndex(shiftedIndex, verticesCount, edgeDimension);
+
       treeEdgeIndices.add(shiftedIndex);
-      graph.addEdge(e);
+      graph.addEdgeByIndex(shiftedIndex);
     }
 
 //    int[] edgeIndices = additionalEdgeIndicesFactory.byOrdinal(g.next());

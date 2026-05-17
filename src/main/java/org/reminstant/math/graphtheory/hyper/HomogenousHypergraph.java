@@ -5,9 +5,6 @@ import org.reminstant.math.IsomorphicallyComparable;
 import org.reminstant.math.Combinatorics;
 
 import java.util.*;
-import java.util.function.Function;
-import java.util.function.IntFunction;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -138,6 +135,19 @@ public class HomogenousHypergraph implements IsomorphicallyComparable<Homogenous
     }
 
     edges.set(bitIndex);
+    return true;
+  }
+
+  public boolean addEdgeByIndex(int edgeIndex) {
+    if (edgeIndex >= edges.size()) {
+      throw new IllegalArgumentException("Index is too big");
+    }
+
+    if (edges.get(edgeIndex)) {
+      return false;
+    }
+
+    edges.set(edgeIndex);
     return true;
   }
 
